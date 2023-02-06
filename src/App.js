@@ -66,8 +66,10 @@ function App() {
         }
 
         if (containsAllTables) {
-          const table = mdbReader.getTable("MEET");
-          setTableData(table.getData());
+          const athleteTable = mdbReader.getTable("Athlete");
+          const meetTable = mdbReader.getTable("MEET");
+          const resultsTable = mdbReader.getTable("RESULT");
+          setTableData(meetTable.getData());
         } else {
           console.log("This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager");
           setTableData(["This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager"]);
@@ -94,10 +96,10 @@ function App() {
         <table>
           <thead>
             <tr>
+              <th>ID</th>
               <th>MEET</th>
-              <th>MNAME</th>
-              <th>START</th>
-              <th>END</th>
+              <th>DATE</th>
+              {/*<th>END</th>*/}
               <th>LOCATION</th>
             </tr>
           </thead>
@@ -106,8 +108,8 @@ function App() {
               <tr key={row.MEET || index}>
                 <td>{row.MEET}</td>
                 <td>{row.MNAME}</td>
-                <td>{row.START.toString()}</td>
-                <td>{row.END.toString()}</td>
+                <td>{row.START.toDateString()}</td>
+                {/*<td>{row.END.toDateString()}</td>*/}
                 <td>{row.LOCATION}</td>
               </tr>
             ))}
