@@ -66,7 +66,7 @@ function App() {
         }
 
         if (containsAllTables) {
-          const table = mdbReader.getTable("Athlete");
+          const table = mdbReader.getTable("MEET");
           setTableData(table.getData());
         } else {
           console.log("This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager");
@@ -91,8 +91,8 @@ function App() {
         <p>
           {fileName ? `Table data for ${fileName}:` : 'Drop a file to display table data'}
         </p>
-        {tableData.map((row) => (
-          <div key={row.id}>{JSON.stringify(row)}</div>
+        {tableData.map((row, index) => (
+          <div key={row.MEET || index}>{JSON.stringify(row)}</div>
         ))}
       </header>
     </div>
