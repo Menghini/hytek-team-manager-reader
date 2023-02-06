@@ -91,9 +91,28 @@ function App() {
         <p>
           {fileName ? `Table data for ${fileName}:` : 'Drop a file to display table data'}
         </p>
-        {tableData.map((row, index) => (
-          <div key={row.MEET || index}>{JSON.stringify(row)}</div>
-        ))}
+        <table>
+          <thead>
+            <tr>
+              <th>MEET</th>
+              <th>MNAME</th>
+              <th>START</th>
+              <th>END</th>
+              <th>LOCATION</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tableData.map((row, index) => (
+              <tr key={row.MEET || index}>
+                <td>{row.MEET}</td>
+                <td>{row.MNAME}</td>
+                <td>{row.START.toString()}</td>
+                <td>{row.END.toString()}</td>
+                <td>{row.LOCATION}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </header>
     </div>
   );
