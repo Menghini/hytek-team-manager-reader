@@ -69,13 +69,13 @@ function App() {
           const table = mdbReader.getTable("Athlete");
           setTableData(table.getData());
         } else {
-          console.log("This file doesn't appear to be from HYTEK Track and Field Manager");
-          setTableData(["This file doesn't appear to be from HYTEK Track and Field Manager"]);
+          console.log("This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager");
+          setTableData(["This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager"]);
         }
       } catch (error) {
         //console.error(error);
         setTableData([]);
-        setFileName("This file doesn't appear to be from HYTEK Track and Field Manager");
+        setFileName("This is not a database file, nor does it appear to be from HYTEK Track and Field Manager");
       }
     };
     reader.readAsArrayBuffer(file);
