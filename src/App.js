@@ -12,6 +12,38 @@ function App() {
   const [tableData, setTableData] = useState([]);
   const [fileName, setFileName] = useState('');
 
+  const requiredTables = [
+    "AGEGROUPS", 
+    "AthInfo", 
+    "Athlete", 
+    "ATHRECR", 
+    "ATHREG", 
+    "BRACKET", 
+    "COACHES", 
+    "CODE", 
+    "CustomLayout", 
+    "CustomLayoutFields", 
+    "CustomLayoutValues", 
+    "CUSTOMRPTS", 
+    "ENTRY", 
+    "ESPLITS", 
+    "FAVORITES", 
+    "JOURNAL", 
+    "MEET", 
+    "MTEVENT", 
+    "MTEVENTE", 
+    "OPTIONS", 
+    "RECNAME", 
+    "RECORDS", 
+    "RELAY", 
+    "REPORTORDER", 
+    "RESULT", 
+    "SPLITS", 
+    "STDNAME", 
+    "TEAM", 
+    "TMREG"
+  ];
+
   const handleFileDrop = (event) => {
     event.preventDefault();
     const file = event.dataTransfer.files[0];
@@ -21,12 +53,26 @@ function App() {
     reader.onload = (event) => {
       const buffer = Buffer.from(event.target.result);
       const mdbReader = new MDBReader(buffer);
-      const table = mdbReader.getTable("Athlete");
-      setTableData(table.getData());
+      let tables = mdbReader.getTableNames();
+
+      let containsAllTables = true;
+      for (let i = 0; i < requiredTables.length; i++) {
+        if (!tables.includes(requiredTables[i])) {
+          containsAllTables = false;
+          break;
+        }
+      }
+
+      if (containsAllTables) {
+        const table = mdbReader.getTable("Athlete");
+        setTableData(table.getData());
+      } else {
+        console.log("This file doesn't appear to be from HYTEK Track and Field Manager");
+        setTableData(["This file doesn't appear to be from HYTEK Track and Field Manager"]);
+      }
     };
     reader.readAsArrayBuffer(file);
   };
-
   return (
     <div
       className="App"
