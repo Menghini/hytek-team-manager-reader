@@ -2,6 +2,14 @@ import React, { useState } from 'react';
 import logo from './logo.svg';
 import MDBReader from "mdb-reader";
 import './App.css';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Paper,
+} from "@mui/material/";
 
 if (typeof Buffer === 'undefined') {
   global.Buffer = require('buffer/').Buffer;
@@ -83,38 +91,34 @@ function App() {
     reader.readAsArrayBuffer(file);
   };
   return (
-    <div
-      className="App"
-      onDrop={handleFileDrop}
-      onDragOver={(event) => event.preventDefault()}
-    >
+    <div className="App" onDrop={handleFileDrop} onDragOver={(event) => event.preventDefault()}>
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          {fileName ? `Table data for ${fileName}:` : 'Drop a file to display table data'}
+          {fileName ? `Table data for ${fileName}:` : "Drop a file to display table data"}
         </p>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>MEET</th>
-              <th>DATE</th>
-              {/*<th>END</th>*/}
-              <th>LOCATION</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tableData.map((row, index) => (
-              <tr key={row.MEET || index}>
-                <td>{row.MEET}</td>
-                <td>{row.MNAME}</td>
-                <td>{row.START.toDateString()}</td>
-                {/*<td>{row.END.toDateString()}</td>*/}
-                <td>{row.LOCATION}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <Paper>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>ID</TableCell>
+                <TableCell>MEET</TableCell>
+                <TableCell>DATE</TableCell>
+                <TableCell>LOCATION</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {tableData.map((row, index) => (
+                <TableRow key={row.MEET || index}>
+                  <TableCell>{row.MEET}</TableCell>
+                  <TableCell>{row.MNAME}</TableCell>
+                  <TableCell>{row.START.toDateString()}</TableCell>
+                  <TableCell>{row.LOCATION}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Paper>
       </header>
     </div>
   );
