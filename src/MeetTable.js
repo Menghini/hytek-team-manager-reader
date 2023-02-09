@@ -1,6 +1,7 @@
 import MDBReader from "mdb-reader";
 import React, { useState } from 'react';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
+import LoopIcon from '@mui/icons-material/Loop';
 import './App.css';
 import './MeetTable.css';
 import {
@@ -16,6 +17,7 @@ if (typeof Buffer === 'undefined') {
     global.Buffer = require('buffer/').Buffer;
 }
 function MeetTable() {
+    const [loading, setLoading] = useState(false);
     const [tableData, setTableData] = useState([]);
     const [fileName, setFileName] = useState('');
 
@@ -52,13 +54,15 @@ function MeetTable() {
     ];
 
     const handleFileDrop = (event) => {
+        console.log("test");
+        setLoading(true); //If this is true, the ternary statement will change the icon to the loading one and will spin.
         event.preventDefault();
         const file = event.dataTransfer.files[0];
         setFileName(file.name);
 
         const reader = new FileReader();
         reader.onload = (event) => {
-
+            setLoading(false);
             try {
                 const buffer = Buffer.from(event.target.result);
                 const mdbReader = new MDBReader(buffer);
@@ -116,10 +120,18 @@ function MeetTable() {
                     </Table>
                 </Paper>
             ) : (
-                <div class = "box">
-                    <div class = "UploadContainer">
-                        <UploadFileIcon fontSize = "large" />
-                        <p>Drag File Here</p>
+                <div class="box">
+                    <div class={"UploadContainer" + (loading ? "" : " done")}>
+                        {loading ? (
+                            <>
+                                <LoopIcon fontSize="large" />
+                            </>
+                        ) : (
+                            <>
+                                <UploadFileIcon fontSize="large" />
+                                <p>Drag File Here</p>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
