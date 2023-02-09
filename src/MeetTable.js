@@ -1,6 +1,7 @@
 import MDBReader from "mdb-reader";
 import React, { useState } from 'react';
 import './App.css';
+import './MeetTable.css';
 import {
     Table,
     TableBody,
@@ -89,10 +90,8 @@ function MeetTable() {
     };
     return (
         <div className="MeetTable" onDrop={handleFileDrop} onDragOver={(event) => event.preventDefault()}>
-
-                <p>
-                    {fileName ? `Table data for ${fileName}:` : "Drop a file to display table data"}
-                </p>
+            {fileName ? `Table data for ${fileName}:` : "Drop a file to display table data"}
+            {tableData.length > 0 ? (
                 <Paper>
                     <Table>
                         <TableHead>
@@ -115,6 +114,11 @@ function MeetTable() {
                         </TableBody>
                     </Table>
                 </Paper>
+            ) : (
+                <div class="box">
+                    Drag File Here
+                </div>
+            )}
         </div>
     );
 }

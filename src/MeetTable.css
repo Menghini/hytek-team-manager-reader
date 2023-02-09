@@ -1,0 +1,14 @@
+.box {
+    width: 200px;
+    height: 200px;
+    border: dotted 2px gray;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: 20px;
+    margin: 50px auto;
+  }
+.MeetTable{
+    text-align: center;
+}
