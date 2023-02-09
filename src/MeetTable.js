@@ -1,5 +1,6 @@
 import MDBReader from "mdb-reader";
 import React, { useState } from 'react';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import './App.css';
 import './MeetTable.css';
 import {
@@ -115,8 +116,11 @@ function MeetTable() {
                     </Table>
                 </Paper>
             ) : (
-                <div class="box">
-                    Drag File Here
+                <div class = "box">
+                    <div class = "UploadContainer">
+                        <UploadFileIcon fontSize = "large" />
+                        <p>Drag File Here</p>
+                    </div>
                 </div>
             )}
         </div>
