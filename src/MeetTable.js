@@ -26,6 +26,7 @@ function MeetTable() {
     const [selectedMeetRows, setSelectedMeetRows] = useState([]);
     const [open, setOpen] = useState(false);
     const [resultsTable, setResultsTable] = useState(null);
+    const [athletesTable, setAthletesTable] = useState(null);
 
     const requiredTables = [
         "AGEGROUPS",
@@ -88,6 +89,7 @@ function MeetTable() {
                     setTableData(meetTable.getData());
                     setSelectedMeetRows([]);
                     setResultsTable(resultTable);
+                    setAthletesTable(athleteTable.getData());
                 } else {
                     console.log("This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager");
                     setTableData(["This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager"]);
@@ -129,6 +131,7 @@ function MeetTable() {
     };
 
     const handleSelectionChange = (newSelection) => {
+        console.log("athletesTable:", athletesTable);
         const selectedMeetId = newSelection[0];
         const selectedMeetRows = resultsTable.getData()
             .filter(row => row.MEET === selectedMeetId)
@@ -225,7 +228,7 @@ function MeetTable() {
                 }
                 return {
                     id: index,
-                    ATHLETE: row.ATHLETE,
+                    ATHLETE: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Last + ', ' + athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.First,
                     EVENTNAME: eventName,
                     MINUTES: minutes,
                     SECONDS: seconds,
