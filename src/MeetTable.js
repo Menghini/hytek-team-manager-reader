@@ -126,16 +126,84 @@ function MeetTable() {
                 const seconds = Math.floor(scoreInSeconds % 60);
                 const milliseconds = row.SCORE % 100;
                 const showMinutes = minutes >= 1;
-                const timeString = (showMinutes ? `${minutes}:` : '') + `${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+                const timeString = (showMinutes ? `${minutes}:` : '') +
+                    `${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+                let eventName = '';
+                let eventType;
+                switch (row.I_R) {
+                  case "I":
+                    eventType = "Individual";
+                    break;
+                  case "R":
+                    eventType = "Relay";
+                    break;
+                  case "N":
+                    eventType = "Relay Split";
+                    break;
+                  default:
+                    eventType = "";
+                    break;
+                }
+                switch (row.EVENT) {
+                    case 1:
+                        eventName = row.DISTANCE + 'M Dash';
+                        break;
+                    case 2:
+                        eventName = row.DISTANCE + 'M Run';
+                        break;
+                    case 3:
+                        eventName = row.DISTANCE / 10 + ' Mile Run';
+                        break;
+                    case 5:
+                        eventName = row.DISTANCE + 'M Hurdles';
+                        break;
+                    case 9:
+                        eventName = 'High Jump';
+                        break;
+                    case 10:
+                        eventName = 'Pole Vault';
+                        break;
+                    case 11:
+                        eventName = 'Long Jump';
+                        break;
+                    case 12:
+                        eventName = 'Triple Jump';
+                        break;
+                    case 13:
+                        eventName = 'Shot Put';
+                        break;
+                    case 14:
+                        eventName = 'Discus';
+                        break;
+                    case 15:
+                        eventName = 'Hammer';
+                        break;
+                    case 16:
+                        eventName = 'Javelin';
+                        break;
+                    case 17:
+                        eventName = 'Weight Throw';
+                        break;
+                    case 19:
+                        eventName = '4x' + row.DISTANCE / 4 + 'M Relay';
+                        break;
+                    case 31:
+                        eventName = 'Super Weight';
+                        break;
+                    default:
+                        eventName = '?UNKOWN?';
+                        break;
+                }
                 return {
                     id: index,
                     ATHLETE: row.ATHLETE,
-                    DISTANCE: row.DISTANCE,
+                    EVENTNAME: eventName,
                     MINUTES: minutes,
                     SECONDS: seconds,
                     MILLISECONDS: milliseconds,
                     SCORE: timeString,
-                    RESULT: row.RESULT
+                    RESULT: row.RESULT,
+                    EVENTTYPE: eventType
                 }
             });
         setSelectedMeetRows(selectedMeetRows);
@@ -144,11 +212,12 @@ function MeetTable() {
 
 
 
+
     const resultsTableColumns = [
         { field: 'ATHLETE', headerName: 'ATHLETE', flex: 1 },
-        { field: 'DISTANCE', headerName: 'DISTANCE', flex: 1 },
-        { field: 'SCORE', headerName: 'SCORE', flex: 1 },
-        { field: 'RESULT', headerName: 'RESULT', flex: 1 },
+        { field: 'EVENTTYPE', headerName: 'EVENTTYPE', flex: 1 },
+        { field: 'EVENTNAME', headerName: 'EVENT NAME', flex: 1 },
+        { field: 'SCORE', headerName: 'MARK', flex: 1 },
     ];
 
     return (
