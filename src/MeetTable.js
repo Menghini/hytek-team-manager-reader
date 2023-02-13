@@ -113,8 +113,10 @@ function MeetTable() {
                         pageSize={100}
                         rowsPerPageOptions={[10]}
                         autoPageSize
-                        disableSelectionOnClick
                         sortModel={[{ field: 'START', sort: 'desc' }]}
+                        onSelectionModelChange={(newSelection) => {
+                            console.log("Selected row index:", newSelection[0]);
+                        }}
                     />
                 </Paper>
             ) : (
