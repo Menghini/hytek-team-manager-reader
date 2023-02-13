@@ -118,16 +118,30 @@ function MeetTable() {
 
     const handleSelectionChange = (newSelection) => {
         const selectedMeetId = newSelection[0];
-        const selectedMeetRows = resultsTable.getData().filter(row => row.MEET === selectedMeetId).map((row, index) => ({
-            id: index,
-            ATHLETE: row.ATHLETE,
-            DISTANCE: row.DISTANCE,
-            SCORE: Math.floor(row.SCORE/100/60)+":"+String(Math.floor(row.SCORE/100%60)).padStart(2,'0')+"."+String(row.SCORE%100).padStart(2,'0'),
-            RESULT: row.RESULT
-        }));
+        const selectedMeetRows = resultsTable.getData()
+            .filter(row => row.MEET === selectedMeetId)
+            .map((row, index) => {
+                const scoreInSeconds = row.SCORE / 100;
+                const minutes = Math.floor(scoreInSeconds / 60);
+                const seconds = Math.floor(scoreInSeconds % 60);
+                const milliseconds = row.SCORE % 100;
+                const showMinutes = minutes >= 1;
+                const timeString = (showMinutes ? `${minutes}:` : '') + `${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+                return {
+                    id: index,
+                    ATHLETE: row.ATHLETE,
+                    DISTANCE: row.DISTANCE,
+                    MINUTES: minutes,
+                    SECONDS: seconds,
+                    MILLISECONDS: milliseconds,
+                    SCORE: timeString,
+                    RESULT: row.RESULT
+                }
+            });
         setSelectedMeetRows(selectedMeetRows);
         setOpen(true);
     };
+
 
 
     const resultsTableColumns = [
