@@ -105,18 +105,19 @@ function MeetTable() {
         { field: 'MNAME', headerName: 'Meet Name', flex: 1 },
         { field: 'START', headerName: 'Date', flex: 1, valueFormatter: (params) => params.value.toDateString() },
         { field: 'LOCATION', headerName: 'Location', flex: 1 },
-        { field: 'MEET_KIND', headerName: 'Meet Type', flex: 1, valueFormatter: (params) => {
-            if (params.value === 'T') {
-              return 'Track & Field';
-            } else if (params.value === 'C') {
-              return 'Cross Country';
-            } else {
-              return '';
+        {
+            field: 'MEET_KIND', headerName: 'Meet Type', flex: 1, valueFormatter: (params) => {
+                if (params.value === 'T') {
+                    return 'Track & Field';
+                } else if (params.value === 'C') {
+                    return 'Cross Country';
+                } else {
+                    return '';
+                }
             }
-          }
         },
-      ];
-      
+    ];
+
     const tableDataWithId = tableData.map((row, index) => {
         return {
             ...row,
@@ -137,8 +138,22 @@ function MeetTable() {
                 const seconds = Math.floor(scoreInSeconds % 60);
                 const milliseconds = row.SCORE % 100;
                 const showMinutes = minutes >= 1;
-                const timeString = (showMinutes ? `${minutes}:` : '') +
-                    `${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+                let mark;
+                if (row.SCORE < 0) {
+                    const feet = Math.floor(row.SCORE * -1 / 100) / 12;
+                    const inches = feet % 1 * 12;
+                    const inchString = inches.toFixed(2).padStart(5, '0');
+                    mark = `${feet.toFixed(0)}-${inchString}`;
+                } else {
+                    const scoreInSeconds = row.SCORE / 100;
+                    const minutes = Math.floor(scoreInSeconds / 60);
+                    const seconds = Math.floor(scoreInSeconds % 60);
+                    const milliseconds = row.SCORE % 100;
+                    const showMinutes = minutes >= 1;
+                    mark = `${showMinutes ? `${minutes}:` : ''}${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+                }
+
+
                 let eventName = '';
                 let eventType;
                 switch (row.I_R) {
@@ -212,7 +227,7 @@ function MeetTable() {
                     MINUTES: minutes,
                     SECONDS: seconds,
                     MILLISECONDS: milliseconds,
-                    SCORE: timeString,
+                    SCORE: mark,
                     RESULT: row.RESULT,
                     EVENTTYPE: eventType
                 }
@@ -224,7 +239,7 @@ function MeetTable() {
 
 
 
-    const resultsTableColumns  = [
+    const resultsTableColumns = [
         { field: 'ATHLETE', headerName: 'Athlete', flex: 1 },
         { field: 'EVENTTYPE', headerName: 'Event Type', flex: 1 },
         { field: 'EVENTNAME', headerName: 'Event Name', flex: 1 },
