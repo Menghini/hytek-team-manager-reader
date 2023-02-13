@@ -5,18 +5,14 @@ import './MeetTable.css';
 import UploadBox from './UploadBox';
 
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
     Paper,
 } from "@mui/material/";
-
+import { DataGrid } from '@mui/x-data-grid';
 
 if (typeof Buffer === 'undefined') {
     global.Buffer = require('buffer/').Buffer;
 }
+
 function MeetTable() {
     const [loading, setLoading] = useState(false);
     const [tableData, setTableData] = useState([]);
@@ -93,31 +89,33 @@ function MeetTable() {
         };
         reader.readAsArrayBuffer(file);
     };
+    const columns = [
+        { field: 'MEET', headerName: 'ID', flex: 1 },
+        { field: 'MNAME', headerName: 'MEET', flex: 1 },
+        { field: 'START', headerName: 'DATE', flex: 1, valueFormatter: (params) => params.value.toDateString() },
+        { field: 'LOCATION', headerName: 'LOCATION', flex: 1 },
+    ];
+    const tableDataWithId = tableData.map((row, index) => {
+        return {
+            ...row,
+            id: row.MEET,
+        };
+    });
+
     return (
-        <div className="MeetTable" onDrop={handleFileDrop} onDragOver={(event) => event.preventDefault()}>
+        <div className="MeetTable" style={{ width: '80vw' }} onDrop={handleFileDrop} onDragOver={(event) => event.preventDefault()}>
             {fileName ? `Table data for ${fileName}:` : "Drop a file to display table data"}
             {tableData.length > 0 ? (
-                <Paper>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>ID</TableCell>
-                                <TableCell>MEET</TableCell>
-                                <TableCell>DATE</TableCell>
-                                <TableCell>LOCATION</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {tableData.map((row, index) => (
-                                <TableRow key={row.MEET || index}>
-                                    <TableCell>{row.MEET}</TableCell>
-                                    <TableCell>{row.MNAME}</TableCell>
-                                    <TableCell>{row.START.toDateString()}</TableCell>
-                                    <TableCell>{row.LOCATION}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                <Paper sx={{ height: '70vh', width: '100%' }}>
+                    <DataGrid
+                        rows={tableDataWithId}
+                        columns={columns}
+                        pageSize={100}
+                        rowsPerPageOptions={[10]}
+                        autoPageSize
+                        disableSelectionOnClick
+                        sortModel={[{ field: 'START', sort: 'desc' }]}
+                    />
                 </Paper>
             ) : (
                 <UploadBox loading={loading} />
@@ -126,5 +124,5 @@ function MeetTable() {
     );
 }
 
-
 export default MeetTable;
+
