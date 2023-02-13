@@ -148,7 +148,7 @@ function MeetTable() {
                     let inchString = inches.toFixed(2);
                     if (inchString.length === 4) {
                         inchString = "0" + inchString;
-                      }
+                    }
                     mark = `${feet.toFixed(0)}-${inchString}`;
                 } else {
                     const scoreInSeconds = row.SCORE / 100;
@@ -228,7 +228,11 @@ function MeetTable() {
                 }
                 return {
                     id: index,
-                    ATHLETE: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Last + ', ' + athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.First,
+                    //Below concatenates the last name and first name with a comma
+                    //ATHLETE: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Last + ', ' + athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.First,
+                    FIRST: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.First,
+                    LAST: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Last,
+                    ATHLETE: row.ATHLETE,
                     EVENTNAME: eventName,
                     MINUTES: minutes,
                     SECONDS: seconds,
@@ -246,7 +250,9 @@ function MeetTable() {
 
 
     const resultsTableColumns = [
-        { field: 'ATHLETE', headerName: 'Athlete', flex: 1 },
+        { field: 'LAST', headerName: 'Last Name', flex: 1 },
+        { field: 'FIRST', headerName: 'First Name', flex: 1 },
+        { field: 'ATHLETE', headerName: 'Athlete ID', flex: 1 },
         { field: 'EVENTTYPE', headerName: 'Event Type', flex: 1 },
         { field: 'EVENTNAME', headerName: 'Event Name', flex: 1 },
         { field: 'SCORE', headerName: 'Mark', flex: 1 },
