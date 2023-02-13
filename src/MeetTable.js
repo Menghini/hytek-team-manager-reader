@@ -142,7 +142,8 @@ function MeetTable() {
                 const milliseconds = row.SCORE % 100;
                 const showMinutes = minutes >= 1;
                 let mark;
-                if (row.SCORE < 0) {
+                if (row.SCORE < 0 && row.MARK_YD === "E") {
+                    //Imperial Field Event
                     const feet = Math.floor(row.SCORE * -1 / 100) / 12;
                     const inches = (row.SCORE * -1 / 100) % 12;
                     let inchString = inches.toFixed(2);
@@ -150,7 +151,12 @@ function MeetTable() {
                         inchString = "0" + inchString;
                     }
                     mark = `${feet.toFixed(0)}-${inchString}`;
+                }else if (row.SCORE < 0 && row.MARK_YD === "M") {
+                    //Metric Field Event
+                    const meters = row.SCORE * -1 / 100;
+                    mark = `${meters.toFixed(2)}m`;
                 } else {
+                    //Timed event
                     const scoreInSeconds = row.SCORE / 100;
                     const minutes = Math.floor(scoreInSeconds / 60);
                     const seconds = Math.floor(scoreInSeconds % 60);
