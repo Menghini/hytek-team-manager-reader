@@ -141,8 +141,11 @@ function MeetTable() {
                 let mark;
                 if (row.SCORE < 0) {
                     const feet = Math.floor(row.SCORE * -1 / 100) / 12;
-                    const inches = feet % 1 * 12;
-                    const inchString = inches.toFixed(2).padStart(5, '0');
+                    const inches = (row.SCORE * -1 / 100) % 12;
+                    let inchString = inches.toFixed(2);
+                    if (inchString.length === 4) {
+                        inchString = "0" + inchString;
+                      }
                     mark = `${feet.toFixed(0)}-${inchString}`;
                 } else {
                     const scoreInSeconds = row.SCORE / 100;
