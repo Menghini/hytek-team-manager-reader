@@ -142,19 +142,34 @@ function MeetTable() {
                 const milliseconds = row.SCORE % 100;
                 const showMinutes = minutes >= 1;
                 let mark;
-                if (row.SCORE < 0 && row.MARK_YD === "E") {
-                    //Imperial Field Event
+                let convert;
+                if (row.SCORE === 0) {
+                    mark = "F";
+                }
+                else if (row.SCORE < 0 && row.MARK_YD === "E") {
+                    //Imperial Scored Field Event
                     const feet = Math.floor(row.SCORE * -1 / 100) / 12;
                     const inches = (row.SCORE * -1 / 100) % 12;
+                    convert = (feet * 12 + inches) * 0.0254 + "m";
                     let inchString = inches.toFixed(2);
                     if (inchString.length === 4) {
                         inchString = "0" + inchString;
                     }
                     mark = `${feet.toFixed(0)}-${inchString}`;
-                }else if (row.SCORE < 0 && row.MARK_YD === "M") {
-                    //Metric Field Event
+                } else if (row.SCORE < 0 && row.MARK_YD === "M") {
+                    //Metric Scored Field Event
                     const meters = row.SCORE * -1 / 100;
                     mark = `${meters.toFixed(2)}m`;
+                    let feet = meters * 3.28084;
+                    let inches = (feet - Math.floor(feet)) * 12;
+                    if (inches === 12.00) {
+                        feet += 1;
+                        inches = 0;
+                    } else {
+                        inches = Math.round(inches / 0.25) * 0.25; // round to nearest quarter inch
+                    }
+                    convert = `${Math.floor(feet).toFixed(0)}-${inches.toFixed(2)}`;
+
                 } else {
                     //Timed event
                     const scoreInSeconds = row.SCORE / 100;
@@ -244,6 +259,7 @@ function MeetTable() {
                     SECONDS: seconds,
                     MILLISECONDS: milliseconds,
                     SCORE: mark,
+                    CONVERT: convert,
                     RESULT: row.RESULT,
                     EVENTTYPE: eventType
                 }
@@ -262,6 +278,7 @@ function MeetTable() {
         { field: 'EVENTTYPE', headerName: 'Event Type', flex: 1 },
         { field: 'EVENTNAME', headerName: 'Event Name', flex: 1 },
         { field: 'SCORE', headerName: 'Mark', flex: 1 },
+        { field: 'CONVERT', headerName: 'Convert', flex: 1 },
     ];
 
     return (
