@@ -102,10 +102,21 @@ function MeetTable() {
 
     const columns = [
         { field: 'MEET', headerName: 'ID', flex: 1 },
-        { field: 'MNAME', headerName: 'MEET', flex: 1 },
-        { field: 'START', headerName: 'DATE', flex: 1, valueFormatter: (params) => params.value.toDateString() },
-        { field: 'LOCATION', headerName: 'LOCATION', flex: 1 },
-    ];
+        { field: 'MNAME', headerName: 'Meet Name', flex: 1 },
+        { field: 'START', headerName: 'Date', flex: 1, valueFormatter: (params) => params.value.toDateString() },
+        { field: 'LOCATION', headerName: 'Location', flex: 1 },
+        { field: 'MEET_KIND', headerName: 'Meet Type', flex: 1, valueFormatter: (params) => {
+            if (params.value === 'T') {
+              return 'Track & Field';
+            } else if (params.value === 'C') {
+              return 'Cross Country';
+            } else {
+              return '';
+            }
+          }
+        },
+      ];
+      
     const tableDataWithId = tableData.map((row, index) => {
         return {
             ...row,
@@ -213,11 +224,11 @@ function MeetTable() {
 
 
 
-    const resultsTableColumns = [
-        { field: 'ATHLETE', headerName: 'ATHLETE', flex: 1 },
-        { field: 'EVENTTYPE', headerName: 'EVENTTYPE', flex: 1 },
-        { field: 'EVENTNAME', headerName: 'EVENT NAME', flex: 1 },
-        { field: 'SCORE', headerName: 'MARK', flex: 1 },
+    const resultsTableColumns  = [
+        { field: 'ATHLETE', headerName: 'Athlete', flex: 1 },
+        { field: 'EVENTTYPE', headerName: 'Event Type', flex: 1 },
+        { field: 'EVENTNAME', headerName: 'Event Name', flex: 1 },
+        { field: 'SCORE', headerName: 'Mark', flex: 1 },
     ];
 
     return (
