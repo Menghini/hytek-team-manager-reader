@@ -18,7 +18,7 @@ function MeetTable() {
     const [tableData, setTableData] = useState([]);
     const [fileName, setFileName] = useState('');
     const [resultsTable, setResultsTable] = useState(null);
-    
+
 
     const requiredTables = [
         "AGEGROUPS",
@@ -105,7 +105,7 @@ function MeetTable() {
         };
     });
 
-    
+
 
     return (
         <div className="MeetTable" style={{ width: '80vw' }} onDrop={handleFileDrop} onDragOver={(event) => event.preventDefault()}>
@@ -113,18 +113,18 @@ function MeetTable() {
             {tableData.length > 0 ? (
                 <Paper sx={{ height: '70vh', width: '100%' }}>
                     <DataGrid
-    rows={tableDataWithId}
-    columns={columns}
-    pageSize={100}
-    rowsPerPageOptions={[10]}
-    autoPageSize
-    sortModel={[{ field: 'START', sort: 'desc' }]}
-    onSelectionModelChange={(newSelection) => {
-        const selectedMeetId = newSelection[0];
-        const selectedMeetRows = resultsTable.getData().filter(row => row.MEET === selectedMeetId);
-        console.log(selectedMeetRows);
-    }}
-/>
+                        rows={tableDataWithId}
+                        columns={columns}
+                        pageSize={100}
+                        rowsPerPageOptions={[10]}
+                        autoPageSize
+                        sortModel={[{ field: 'START', sort: 'desc' }]}
+                        onSelectionModelChange={(newSelection) => {
+                            const selectedMeetId = newSelection[0];
+                            const selectedMeetRows = resultsTable.getData().filter(row => row.MEET === selectedMeetId);
+                            console.log(selectedMeetRows);
+                        }}
+                    />
                 </Paper>
             ) : (
                 <UploadBox loading={loading} />
