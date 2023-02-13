@@ -150,7 +150,7 @@ function MeetTable() {
                     //Imperial Scored Field Event
                     const feet = Math.floor(row.SCORE * -1 / 100) / 12;
                     const inches = (row.SCORE * -1 / 100) % 12;
-                    convert = (feet * 12 + inches) * 0.0254 + "m";
+                    convert = ((feet * 12 + inches) * 0.0254).toFixed(2) + "m";
                     let inchString = inches.toFixed(2);
                     if (inchString.length === 4) {
                         inchString = "0" + inchString;
