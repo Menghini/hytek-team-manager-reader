@@ -17,6 +17,8 @@ function MeetTable() {
     const [loading, setLoading] = useState(false);
     const [tableData, setTableData] = useState([]);
     const [fileName, setFileName] = useState('');
+    const [resultsTable, setResultsTable] = useState(null);
+    
 
     const requiredTables = [
         "AGEGROUPS",
@@ -75,8 +77,9 @@ function MeetTable() {
                 if (containsAllTables) {
                     const athleteTable = mdbReader.getTable("Athlete");
                     const meetTable = mdbReader.getTable("MEET");
-                    const resultsTable = mdbReader.getTable("RESULT");
+                    const resultTable = mdbReader.getTable("RESULT");
                     setTableData(meetTable.getData());
+                    setResultsTable(resultTable);
                 } else {
                     console.log("This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager");
                     setTableData(["This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager"]);
@@ -102,22 +105,26 @@ function MeetTable() {
         };
     });
 
+    
+
     return (
         <div className="MeetTable" style={{ width: '80vw' }} onDrop={handleFileDrop} onDragOver={(event) => event.preventDefault()}>
             {fileName ? `Table data for ${fileName}:` : "Drop a file to display table data"}
             {tableData.length > 0 ? (
                 <Paper sx={{ height: '70vh', width: '100%' }}>
                     <DataGrid
-                        rows={tableDataWithId}
-                        columns={columns}
-                        pageSize={100}
-                        rowsPerPageOptions={[10]}
-                        autoPageSize
-                        sortModel={[{ field: 'START', sort: 'desc' }]}
-                        onSelectionModelChange={(newSelection) => {
-                            console.log("Selected row index:", newSelection[0]);
-                        }}
-                    />
+    rows={tableDataWithId}
+    columns={columns}
+    pageSize={100}
+    rowsPerPageOptions={[10]}
+    autoPageSize
+    sortModel={[{ field: 'START', sort: 'desc' }]}
+    onSelectionModelChange={(newSelection) => {
+        const selectedMeetId = newSelection[0];
+        const selectedMeetRows = resultsTable.getData().filter(row => row.MEET === selectedMeetId);
+        console.log(selectedMeetRows);
+    }}
+/>
                 </Paper>
             ) : (
                 <UploadBox loading={loading} />
