@@ -131,18 +131,18 @@ function MeetTable() {
                 let eventName = '';
                 let eventType;
                 switch (row.I_R) {
-                  case "I":
-                    eventType = "Individual";
-                    break;
-                  case "R":
-                    eventType = "Relay";
-                    break;
-                  case "N":
-                    eventType = "Relay Split";
-                    break;
-                  default:
-                    eventType = "";
-                    break;
+                    case "I":
+                        eventType = "Individual";
+                        break;
+                    case "R":
+                        eventType = "Relay";
+                        break;
+                    case "N":
+                        eventType = "Relay Split";
+                        break;
+                    default:
+                        eventType = "";
+                        break;
                 }
                 switch (row.EVENT) {
                     case 1:
