@@ -122,7 +122,7 @@ function MeetTable() {
             id: index,
             ATHLETE: row.ATHLETE,
             DISTANCE: row.DISTANCE,
-            SCORE: row.SCORE,
+            SCORE: Math.floor(row.SCORE/100/60)+":"+String(Math.floor(row.SCORE/100%60)).padStart(2,'0')+"."+String(row.SCORE%100).padStart(2,'0'),
             RESULT: row.RESULT
         }));
         setSelectedMeetRows(selectedMeetRows);
