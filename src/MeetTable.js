@@ -6,6 +6,12 @@ import UploadBox from './UploadBox';
 
 import {
     Paper,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    Button,
 } from "@mui/material/";
 import { DataGrid } from '@mui/x-data-grid';
 
@@ -17,8 +23,9 @@ function MeetTable() {
     const [loading, setLoading] = useState(false);
     const [tableData, setTableData] = useState([]);
     const [fileName, setFileName] = useState('');
+    const [selectedMeetRows, setSelectedMeetRows] = useState([]);
+    const [open, setOpen] = useState(false);
     const [resultsTable, setResultsTable] = useState(null);
-
 
     const requiredTables = [
         "AGEGROUPS",
@@ -53,7 +60,7 @@ function MeetTable() {
     ];
 
     const handleFileDrop = (event) => {
-        setLoading(true); //If this is true, the ternary statement will change the icon to the loading one and will spin.
+        setLoading(true);
         event.preventDefault();
         const file = event.dataTransfer.files[0];
         setFileName(file.name);
@@ -79,19 +86,20 @@ function MeetTable() {
                     const meetTable = mdbReader.getTable("MEET");
                     const resultTable = mdbReader.getTable("RESULT");
                     setTableData(meetTable.getData());
+                    setSelectedMeetRows([]);
                     setResultsTable(resultTable);
                 } else {
                     console.log("This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager");
                     setTableData(["This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager"]);
                 }
             } catch (error) {
-                //console.error(error);
                 setTableData([]);
                 setFileName("This is not a database file, nor does it appear to be from HYTEK Track and Field Manager");
             }
         };
         reader.readAsArrayBuffer(file);
     };
+
     const columns = [
         { field: 'MEET', headerName: 'ID', flex: 1 },
         { field: 'MNAME', headerName: 'MEET', flex: 1 },
@@ -104,28 +112,60 @@ function MeetTable() {
             id: row.MEET,
         };
     });
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    const handleSelectionChange = (newSelection) => {
+        const selectedMeetId = newSelection[0];
+        const selectedMeetRows = resultsTable.getData().filter(row => row.MEET === selectedMeetId).map((row, index) => ({
+            id: index,
+            ATHLETE: row.ATHLETE,
+            DISTANCE: row.DISTANCE,
+            SCORE: row.SCORE,
+            RESULT: row.RESULT
+        }));
+        setSelectedMeetRows(selectedMeetRows);
+        setOpen(true);
+    };
 
 
+    const resultsTableColumns = [
+        { field: 'ATHLETE', headerName: 'ATHLETE', flex: 1 },
+        { field: 'DISTANCE', headerName: 'DISTANCE', flex: 1 },
+        { field: 'SCORE', headerName: 'SCORE', flex: 1 },
+        { field: 'RESULT', headerName: 'RESULT', flex: 1 },
+    ];
 
     return (
         <div className="MeetTable" style={{ width: '80vw' }} onDrop={handleFileDrop} onDragOver={(event) => event.preventDefault()}>
             {fileName ? `Table data for ${fileName}:` : "Drop a file to display table data"}
             {tableData.length > 0 ? (
-                <Paper sx={{ height: '70vh', width: '100%' }}>
-                    <DataGrid
-                        rows={tableDataWithId}
-                        columns={columns}
-                        pageSize={100}
-                        rowsPerPageOptions={[10]}
-                        autoPageSize
-                        sortModel={[{ field: 'START', sort: 'desc' }]}
-                        onSelectionModelChange={(newSelection) => {
-                            const selectedMeetId = newSelection[0];
-                            const selectedMeetRows = resultsTable.getData().filter(row => row.MEET === selectedMeetId);
-                            console.log(selectedMeetRows);
-                        }}
-                    />
-                </Paper>
+                <>
+                    <Paper sx={{ height: '70vh', width: '100%' }}>
+                        <DataGrid
+                            rows={tableDataWithId}
+                            columns={columns}
+                            pageSize={100}
+                            rowsPerPageOptions={[10]}
+                            autoPageSize
+                            sortModel={[{ field: 'START', sort: 'desc' }]}
+                            onSelectionModelChange={handleSelectionChange}
+                        />
+                    </Paper>
+                    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+                        <DialogTitle>Selected Meet Results</DialogTitle>
+                        <DialogContent>
+                            <DialogContentText>Table showing athletes, distances, scores, and results for the selected meet.</DialogContentText>
+                            <div style={{ height: 500, width: '100%' }}>
+                                <DataGrid rows={selectedMeetRows} columns={resultsTableColumns} getRowId={(row) => row.id} />
+                            </div>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleClose}>Close</Button>
+                        </DialogActions>
+                    </Dialog>
+                </>
             ) : (
                 <UploadBox loading={loading} />
             )}
@@ -134,4 +174,3 @@ function MeetTable() {
 }
 
 export default MeetTable;
-
