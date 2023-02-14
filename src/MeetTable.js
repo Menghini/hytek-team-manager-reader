@@ -181,6 +181,9 @@ function MeetTable() {
 
     const handleSelectionChange = (newSelection) => {
         const selectedMeetId = newSelection[0];
+        const meet = tableData && tableData.find(tableData => tableData.MEET === selectedMeetId);
+        const meetName = meet?.MNAME;
+        const meetDate = meet?.START;
         const selectedMeetRows = resultsTable.getData()
             .filter(row => row.MEET === selectedMeetId)
             .map((row, index) => {
@@ -262,7 +265,9 @@ function MeetTable() {
                     SCORE: mark,
                     CONVERT: convert,
                     RESULT: row.RESULT,
-                    EVENTTYPE: eventType
+                    EVENTTYPE: eventType,
+                    MEETNAME: meetName,
+                    MEETDATE: meetDate,
                 }
             });
         setSelectedMeetRows(selectedMeetRows);
@@ -299,7 +304,7 @@ function MeetTable() {
                         />
                     </Paper>
                     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-                        <DialogTitle>Selected Meet Results</DialogTitle>
+                        <DialogTitle>{selectedMeetRows[0]?.MEETNAME !== undefined ? selectedMeetRows[0]?.MEETNAME + " Results on " + selectedMeetRows[0]?.MEETDATE.toDateString() : "No Meet Results"}</DialogTitle>
                         <DialogContent>
                             <DialogContentText>Table showing athletes, distances, scores, and results for the selected meet.</DialogContentText>
                             <div style={{ height: 500, width: '100%' }}>
