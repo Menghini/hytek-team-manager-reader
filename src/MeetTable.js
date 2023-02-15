@@ -3,7 +3,11 @@ import React, { useState } from 'react';
 import './App.css';
 import './MeetTable.css';
 import UploadBox from './UploadBox';
-
+import {
+    TabContext,
+    TabPanel,
+    TabList
+}from '@mui/lab/';
 import {
     Paper,
     Dialog,
@@ -12,6 +16,10 @@ import {
     DialogContentText,
     DialogActions,
     Button,
+    Tabs,
+    Tab,
+    TablePaginationBaseProps,
+    Box,
 } from "@mui/material/";
 import { DataGrid } from '@mui/x-data-grid';
 
@@ -28,6 +36,7 @@ function MeetTable() {
     const [resultsTable, setResultsTable] = useState(null);
     const [athletesTable, setAthletesTable] = useState(null);
     const [meetInfo, setMeetInfo] = useState(null);
+    const [mainTabsValue, setMainTabsValue] = React.useState(0);
     const requiredTables = [
         "AGEGROUPS",
         "AthInfo",
@@ -59,6 +68,10 @@ function MeetTable() {
         "TEAM",
         "TMREG"
     ];
+    const handleMainTabsChange = (event, newValue) => {
+        setMainTabsValue(newValue);
+    };
+
 
     const handleFileDrop = (event) => {
         setLoading(true);
@@ -290,6 +303,20 @@ function MeetTable() {
             {fileName ? `Table data for ${fileName}:` : "Drop a file to display table data"}
             {meetTable.length > 0 ? (
                 <>
+                    <Box sx={{ width: '100%', typography: 'body1' }}>
+                        <TabContext value={mainTabsValue}>
+                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                                <TabList onChange={handleMainTabsChange} aria-label="lab API tabs example">
+                                    <Tab label="Item One" value="1" />
+                                    <Tab label="Item Two" value="2" />
+                                    <Tab label="Item Three" value="3" />
+                                </TabList>
+                            </Box>
+                            <TabPanel value="1">Item One</TabPanel>
+                            <TabPanel value="2">Item Two</TabPanel>
+                            <TabPanel value="3">Item Three</TabPanel>
+                        </TabContext>
+                    </Box>
                     <Paper sx={{ height: '70vh', width: '100%' }}>
                         <DataGrid
                             rows={meetTableWithId}
