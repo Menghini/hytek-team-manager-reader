@@ -21,10 +21,10 @@ if (typeof Buffer === 'undefined') {
 
 function MeetTable() {
     const [loading, setLoading] = useState(false);
-    const [tableData, setTableData] = useState([]);
     const [fileName, setFileName] = useState('');
     const [selectedMeetRows, setSelectedMeetRows] = useState([]);
     const [open, setOpen] = useState(false);
+    const [meetTable, setMeetTable] = useState([]);
     const [resultsTable, setResultsTable] = useState(null);
     const [athletesTable, setAthletesTable] = useState(null);
     const [meetInfo, setMeetInfo] = useState(null);
@@ -86,16 +86,16 @@ function MeetTable() {
                     const athleteTable = mdbReader.getTable("Athlete");
                     const meetTable = mdbReader.getTable("MEET");
                     const resultTable = mdbReader.getTable("RESULT");
-                    setTableData(meetTable.getData());
+                    setMeetTable(meetTable.getData());
                     setSelectedMeetRows([]);
                     setResultsTable(resultTable);
                     setAthletesTable(athleteTable.getData());
                 } else {
                     console.log("This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager");
-                    setTableData(["This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager"]);
+                    setMeetTable(["This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager"]);
                 }
             } catch (error) {
-                setTableData([]);
+                setMeetTable([]);
                 setFileName("This is not a database file, nor does it appear to be from HYTEK Track and Field Manager");
             }
         };
@@ -120,7 +120,7 @@ function MeetTable() {
         },
     ];
 
-    const tableDataWithId = tableData.map((row, index) => {
+    const meetTableWithId = meetTable.map((row, index) => {
         return {
             ...row,
             id: row.MEET,
@@ -181,7 +181,7 @@ function MeetTable() {
 
     const handleSelectionChange = (newSelection) => {
         const selectedMeetId = newSelection[0];
-        const meet = tableData && tableData.find(tableData => tableData.MEET === selectedMeetId);
+        const meet = meetTable && meetTable.find(meetTable => meetTable.MEET === selectedMeetId);
         const meetInfoToBePassedIn = { meetName: meet?.MNAME, meetDate: meet?.START };
         setMeetInfo(meetInfoToBePassedIn);
         const selectedMeetRows = resultsTable.getData()
@@ -288,11 +288,11 @@ function MeetTable() {
     return (
         <div className="MeetTable" style={{ width: '80vw' }} onDrop={handleFileDrop} onDragOver={(event) => event.preventDefault()}>
             {fileName ? `Table data for ${fileName}:` : "Drop a file to display table data"}
-            {tableData.length > 0 ? (
+            {meetTable.length > 0 ? (
                 <>
                     <Paper sx={{ height: '70vh', width: '100%' }}>
                         <DataGrid
-                            rows={tableDataWithId}
+                            rows={meetTableWithId}
                             columns={columns}
                             pageSize={100}
                             rowsPerPageOptions={[10]}
