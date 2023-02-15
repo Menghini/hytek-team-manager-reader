@@ -27,7 +27,7 @@ function MeetTable() {
     const [open, setOpen] = useState(false);
     const [resultsTable, setResultsTable] = useState(null);
     const [athletesTable, setAthletesTable] = useState(null);
-
+    const [meetInfo, setMeetInfo] = useState(null);
     const requiredTables = [
         "AGEGROUPS",
         "AthInfo",
@@ -182,8 +182,8 @@ function MeetTable() {
     const handleSelectionChange = (newSelection) => {
         const selectedMeetId = newSelection[0];
         const meet = tableData && tableData.find(tableData => tableData.MEET === selectedMeetId);
-        const meetName = meet?.MNAME;
-        const meetDate = meet?.START;
+        const meetInfoToBePassedIn = { meetName: meet?.MNAME, meetDate: meet?.START };
+        setMeetInfo(meetInfoToBePassedIn);
         const selectedMeetRows = resultsTable.getData()
             .filter(row => row.MEET === selectedMeetId)
             .map((row, index) => {
@@ -266,8 +266,6 @@ function MeetTable() {
                     CONVERT: convert,
                     RESULT: row.RESULT,
                     EVENTTYPE: eventType,
-                    MEETNAME: meetName,
-                    MEETDATE: meetDate,
                 }
             });
         setSelectedMeetRows(selectedMeetRows);
@@ -304,7 +302,7 @@ function MeetTable() {
                         />
                     </Paper>
                     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-                        <DialogTitle>{selectedMeetRows[0]?.MEETNAME !== undefined ? selectedMeetRows[0]?.MEETNAME + " Results on " + selectedMeetRows[0]?.MEETDATE.toDateString() : "No Meet Results"}</DialogTitle>
+                        <DialogTitle>{meetInfo !== null ? meetInfo.meetName + " Results on " + meetInfo.meetDate.toDateString() : "No Meet Results"}</DialogTitle>
                         <DialogContent>
                             <DialogContentText>Table showing athletes, distances, scores, and results for the selected meet.</DialogContentText>
                             <div style={{ height: 500, width: '100%' }}>
