@@ -331,7 +331,7 @@ function DataContextProvider({ children }) {
         resultsTableColumns: resultsTableColumns,
         athletesTableWithId: athletesTableWithId,
         athletesTableColumns: athletesTableColumns,
-        loading: athletesTableColumns,
+        loading: loading,
         open: open,
         //Whatever fields
     }
