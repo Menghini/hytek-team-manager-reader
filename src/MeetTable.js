@@ -33,8 +33,8 @@ function MeetTable() {
     const [selectedMeetRows, setSelectedMeetRows] = useState([]);
     const [open, setOpen] = useState(false);
     const [meetTable, setMeetTable] = useState([]);
-    const [resultsTable, setResultsTable] = useState(null);
-    const [athletesTable, setAthletesTable] = useState(null);
+    const [resultsTable, setResultsTable] = useState([]);
+    const [athletesTable, setAthletesTable] = useState([]);
     const [meetInfo, setMeetInfo] = useState(null);
     const [mainTabsValue, setMainTabsValue] = React.useState(1);
     const requiredTables = [
@@ -116,13 +116,15 @@ function MeetTable() {
                 }
             } catch (error) {
                 setMeetTable([]);
+                setAthletesTable([]);
+                setResultsTable([]);
                 setFileName("This is not a database file, nor does it appear to be from HYTEK Track and Field Manager");
             }
         };
         reader.readAsArrayBuffer(file);
     };
-
-    const columns = [
+    //The columns to display in the meets table
+    const meetTableColumns = [
         { field: 'MEET', headerName: 'ID', flex: 1 },
         { field: 'MNAME', headerName: 'Meet Name', flex: 1 },
         { field: 'START', headerName: 'Date', flex: 1, valueFormatter: (params) => params.value.toDateString() },
@@ -139,11 +141,23 @@ function MeetTable() {
             }
         },
     ];
+    //The columns to display in the athletes table
+    const athletesTableColumns = [
+        { field: 'Athlete', headerName: 'ID', flex: 1 },
+        { field: 'Last', headerName: 'Last Name', flex: 1 },
+        { field: 'First', headerName: 'First Name', flex: 1 },
+    ];
 
     const meetTableWithId = meetTable.map((row, index) => {
         return {
             ...row,
-            id: row.MEET,
+            id: row.MEET, //This is telling which column has the unique ID, otherwise you cannot display the data grid
+        };
+    });
+    const athletesTableWithId = athletesTable.map((row, index) => {
+        return {
+            ...row,
+            id: row.Athlete, //This is telling which column has the unique ID, otherwise you cannot display the data grid
         };
     });
     const handleClose = () => {
@@ -199,7 +213,8 @@ function MeetTable() {
         };
     }
 
-    const handleSelectionChange = (newSelection) => {
+    const openResultsTable = (newSelection) => {
+        //This is called to set the results table
         const selectedMeetId = newSelection[0];
         const meet = meetTable && meetTable.find(meetTable => meetTable.MEET === selectedMeetId);
         const meetInfoToBePassedIn = { meetName: meet?.MNAME, meetDate: meet?.START };
@@ -315,20 +330,21 @@ function MeetTable() {
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                 <TabList onChange={handleMainTabsChange} aria-label="lab API tabs example">
                                     <Tab label="Meets" value="1" />
-                                    <Tab label="Item Two" value="2" />
+                                    <Tab label="Athletes" value="2" />
                                     <Tab label="Item Three" value="3" />
                                 </TabList>
                             </Box>
                             <TabPanel value="1">
+                                {/*if the first tab is selected, then the meets will show up here*/}
                                 <Paper sx={{ height: '70vh', width: '100%' }}>
                                     <DataGrid
                                         rows={meetTableWithId}
-                                        columns={columns}
+                                        columns={meetTableColumns}
                                         pageSize={100}
                                         rowsPerPageOptions={[10]}
                                         autoPageSize
                                         sortModel={[{ field: 'START', sort: 'desc' }]}
-                                        onSelectionModelChange={handleSelectionChange}
+                                        onSelectionModelChange={openResultsTable}
                                     />
                                 </Paper>
                                 <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
@@ -344,7 +360,20 @@ function MeetTable() {
                                     </DialogActions>
                                 </Dialog>
                             </TabPanel>
-                            <TabPanel value="2">Item Two</TabPanel>
+                            <TabPanel value="2">
+                                {/*if the first tab is selected, then athlete info will show up here*/}
+                                <Paper sx={{ height: '70vh', width: '100%' }}>
+                                    <DataGrid
+                                        rows={athletesTableWithId}
+                                        columns={athletesTableColumns}
+                                        pageSize={100}
+                                        rowsPerPageOptions={[10]}
+                                        autoPageSize
+                                        sortModel={[{ field: 'Last', sort: 'asc' }]}
+                                        //onSelectionModelChange={openResultsTable}
+                                    />
+                                </Paper>
+                            </TabPanel>
                             <TabPanel value="3">Item Three</TabPanel>
                         </TabContext>
                     </Box>
