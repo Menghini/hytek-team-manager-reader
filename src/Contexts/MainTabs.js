@@ -22,6 +22,8 @@ import {
 import { DataGrid } from '@mui/x-data-grid';
 import { DataContext } from './DataContext';
 import MeetsTab from './MeetsTab';
+import MeetResults from './MeetResults';
+import AthletesTab from './AthletesTab';
 
 
 
@@ -54,43 +56,19 @@ function MainTabs() {
                                 <TabList onChange={handleMainTabsChange} aria-label="lab API tabs example">
                                     <Tab label="Meets" value="1" />
                                     <Tab label="Athletes" value="2" />
-                                    <Tab label="Item Three" value="3" />
                                 </TabList>
                             </Box>
                             <TabPanel value="1">
                                 {/*if the first tab is selected, then the meets will show up here*/}
                                 <MeetsTab />
-                                <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-                                    <DialogTitle>{meetInfo !== null ? meetInfo.meetName + " Results on " + new Date(meetInfo.meetDate).toLocaleDateString('en-US', { timeZone: 'UTC' }) : "No Meet Results"}</DialogTitle>
-                                    <DialogContent>
-                                        <DialogContentText>Table showing athletes, distances, scores, and results for the selected meet.</DialogContentText>
-                                        <div style={{ height: 500, width: '100%' }}>
-                                            <DataGrid rows={selectedMeetRows} columns={resultsTableColumns} getRowId={(row) => row.id} />
-                                        </div>
-                                    </DialogContent>
-                                    <DialogActions>
-                                        <Button onClick={handleClose}>Close</Button>
-                                    </DialogActions>
-                                </Dialog>
+                                <MeetResults /> {/*Only shows if the MeetsTab is clicked*/}
                             </TabPanel>
                             <TabPanel value="2">
                                 {/*if the first tab is selected, then athlete info will show up here*/}
-                                <Paper sx={{ height: '70vh', width: '100%' }}>
-                                    <DataGrid
-                                        rows={athletesTableWithId}
-                                        columns={athletesTableColumns}
-                                        pageSize={100}
-                                        rowsPerPageOptions={[10]}
-                                        autoPageSize
-                                        sortModel={[{ field: 'Last', sort: 'asc' }]}
-                                    //onSelectionModelChange={openResultsTable}
-                                    />
-                                </Paper>
+                                <AthletesTab />
                             </TabPanel>
-                            <TabPanel value="3">Item Three</TabPanel>
                         </TabContext>
                     </Box>
-
                 </>
             ) : (
                 <UploadBox loading={loading} />
