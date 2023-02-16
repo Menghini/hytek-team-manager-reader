@@ -7,7 +7,7 @@ import {
     TabContext,
     TabPanel,
     TabList
-}from '@mui/lab/';
+} from '@mui/lab/';
 import {
     Paper,
     Dialog,
@@ -36,7 +36,7 @@ function MeetTable() {
     const [resultsTable, setResultsTable] = useState(null);
     const [athletesTable, setAthletesTable] = useState(null);
     const [meetInfo, setMeetInfo] = useState(null);
-    const [mainTabsValue, setMainTabsValue] = React.useState(0);
+    const [mainTabsValue, setMainTabsValue] = React.useState(1);
     const requiredTables = [
         "AGEGROUPS",
         "AthInfo",
@@ -68,9 +68,16 @@ function MeetTable() {
         "TEAM",
         "TMREG"
     ];
+
     const handleMainTabsChange = (event, newValue) => {
+        //This code is ran once to set the tabs to the first tab.
         setMainTabsValue(newValue);
     };
+
+
+    React.useEffect(() => {
+        setMainTabsValue("1");
+    }, []);
 
 
     const handleFileDrop = (event) => {
@@ -307,39 +314,41 @@ function MeetTable() {
                         <TabContext value={mainTabsValue}>
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                 <TabList onChange={handleMainTabsChange} aria-label="lab API tabs example">
-                                    <Tab label="Item One" value="1" />
+                                    <Tab label="Meets" value="1" />
                                     <Tab label="Item Two" value="2" />
                                     <Tab label="Item Three" value="3" />
                                 </TabList>
                             </Box>
-                            <TabPanel value="1">Item One</TabPanel>
+                            <TabPanel value="1">
+                                <Paper sx={{ height: '70vh', width: '100%' }}>
+                                    <DataGrid
+                                        rows={meetTableWithId}
+                                        columns={columns}
+                                        pageSize={100}
+                                        rowsPerPageOptions={[10]}
+                                        autoPageSize
+                                        sortModel={[{ field: 'START', sort: 'desc' }]}
+                                        onSelectionModelChange={handleSelectionChange}
+                                    />
+                                </Paper>
+                                <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+                                    <DialogTitle>{meetInfo !== null ? meetInfo.meetName + " Results on " + meetInfo.meetDate.toDateString() : "No Meet Results"}</DialogTitle>
+                                    <DialogContent>
+                                        <DialogContentText>Table showing athletes, distances, scores, and results for the selected meet.</DialogContentText>
+                                        <div style={{ height: 500, width: '100%' }}>
+                                            <DataGrid rows={selectedMeetRows} columns={resultsTableColumns} getRowId={(row) => row.id} />
+                                        </div>
+                                    </DialogContent>
+                                    <DialogActions>
+                                        <Button onClick={handleClose}>Close</Button>
+                                    </DialogActions>
+                                </Dialog>
+                            </TabPanel>
                             <TabPanel value="2">Item Two</TabPanel>
                             <TabPanel value="3">Item Three</TabPanel>
                         </TabContext>
                     </Box>
-                    <Paper sx={{ height: '70vh', width: '100%' }}>
-                        <DataGrid
-                            rows={meetTableWithId}
-                            columns={columns}
-                            pageSize={100}
-                            rowsPerPageOptions={[10]}
-                            autoPageSize
-                            sortModel={[{ field: 'START', sort: 'desc' }]}
-                            onSelectionModelChange={handleSelectionChange}
-                        />
-                    </Paper>
-                    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-                        <DialogTitle>{meetInfo !== null ? meetInfo.meetName + " Results on " + meetInfo.meetDate.toDateString() : "No Meet Results"}</DialogTitle>
-                        <DialogContent>
-                            <DialogContentText>Table showing athletes, distances, scores, and results for the selected meet.</DialogContentText>
-                            <div style={{ height: 500, width: '100%' }}>
-                                <DataGrid rows={selectedMeetRows} columns={resultsTableColumns} getRowId={(row) => row.id} />
-                            </div>
-                        </DialogContent>
-                        <DialogActions>
-                            <Button onClick={handleClose}>Close</Button>
-                        </DialogActions>
-                    </Dialog>
+
                 </>
             ) : (
                 <UploadBox loading={loading} />
