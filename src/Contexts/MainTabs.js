@@ -22,11 +22,9 @@ import {
 import { DataGrid } from '@mui/x-data-grid';
 import { DataContext } from './DataContext';
 
-if (typeof Buffer === 'undefined') {
-    global.Buffer = require('buffer/').Buffer;
-}
 
-function MeetTable() {
+
+function MainTabs() {
     const { handleFileDrop,
         fileName,
         meetTable,
@@ -110,4 +108,4 @@ function MeetTable() {
     );
 }
 
-export default MeetTable;
+export default MainTabs;

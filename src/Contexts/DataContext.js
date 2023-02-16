@@ -6,6 +6,10 @@ import MDBReader from "mdb-reader";
 
 export const DataContext = React.createContext({});
 
+if (typeof Buffer === 'undefined') {
+    global.Buffer = require('buffer/').Buffer;
+}
+
 function DataContextProvider({ children }) {
     
     const [loading, setLoading] = useState(false);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import '../css/App.css';
-import MeetTable from './MeetTable';
+import MainTabs from './MainTabs';
 import DataContext from './DataContext';
 
 
@@ -11,7 +11,7 @@ function App() {
     <header className="App-header">
       <h1>HYTEK Track & Field Database Display</h1>
       <DataContext>
-        <MeetTable />
+        <MainTabs />
       </DataContext>
     </header>
   );
