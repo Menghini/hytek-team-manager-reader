@@ -1,5 +1,5 @@
 import MDBReader from "mdb-reader";
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import './App.css';
 import './MeetTable.css';
 import UploadBox from './UploadBox';
@@ -22,6 +22,7 @@ import {
     Box,
 } from "@mui/material/";
 import { DataGrid } from '@mui/x-data-grid';
+import { DataContext } from './Contexts/DataContext';
 
 if (typeof Buffer === 'undefined') {
     global.Buffer = require('buffer/').Buffer;
@@ -37,6 +38,8 @@ function MeetTable() {
     const [athletesTable, setAthletesTable] = useState([]);
     const [meetInfo, setMeetInfo] = useState(null);
     const [mainTabsValue, setMainTabsValue] = React.useState(1);
+    const { foo } = useContext(DataContext);
+    console.log(foo);  // Prints the foo value to the console
     const requiredTables = [
         "AGEGROUPS",
         "AthInfo",
