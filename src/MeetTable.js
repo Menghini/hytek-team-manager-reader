@@ -38,8 +38,8 @@ function MeetTable() {
     const [athletesTable, setAthletesTable] = useState([]);
     const [meetInfo, setMeetInfo] = useState(null);
     const [mainTabsValue, setMainTabsValue] = React.useState(1);
-    const { foo } = useContext(DataContext);
-    console.log(foo);  // Prints the foo value to the console
+    const dataContext = useContext(DataContext);
+    console.log(dataContext.foo);  // Prints the foo value to the console
     const requiredTables = [
         "AGEGROUPS",
         "AthInfo",
@@ -364,7 +364,7 @@ function MeetTable() {
                                     />
                                 </Paper>
                                 <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-                                <DialogTitle>{meetInfo !== null ? meetInfo.meetName + " Results on " + new Date(meetInfo.meetDate).toLocaleDateString('en-US', { timeZone: 'UTC' }) : "No Meet Results"}</DialogTitle>
+                                    <DialogTitle>{meetInfo !== null ? meetInfo.meetName + " Results on " + new Date(meetInfo.meetDate).toLocaleDateString('en-US', { timeZone: 'UTC' }) : "No Meet Results"}</DialogTitle>
                                     <DialogContent>
                                         <DialogContentText>Table showing athletes, distances, scores, and results for the selected meet.</DialogContentText>
                                         <div style={{ height: 500, width: '100%' }}>
