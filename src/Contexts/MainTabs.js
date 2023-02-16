@@ -21,6 +21,7 @@ import {
 } from "@mui/material/";
 import { DataGrid } from '@mui/x-data-grid';
 import { DataContext } from './DataContext';
+import MeetsTab from './MeetsTab';
 
 
 
@@ -58,17 +59,7 @@ function MainTabs() {
                             </Box>
                             <TabPanel value="1">
                                 {/*if the first tab is selected, then the meets will show up here*/}
-                                <Paper sx={{ height: '70vh', width: '100%' }}>
-                                    <DataGrid
-                                        rows={meetTableWithId}
-                                        columns={meetTableColumns}
-                                        pageSize={100}
-                                        rowsPerPageOptions={[10]}
-                                        autoPageSize
-                                        sortModel={[{ field: 'START', sort: 'desc' }]}
-                                        onSelectionModelChange={openResultsTable}
-                                    />
-                                </Paper>
+                                <MeetsTab />
                                 <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
                                     <DialogTitle>{meetInfo !== null ? meetInfo.meetName + " Results on " + new Date(meetInfo.meetDate).toLocaleDateString('en-US', { timeZone: 'UTC' }) : "No Meet Results"}</DialogTitle>
                                     <DialogContent>
