@@ -125,12 +125,25 @@ function MeetTable() {
     };
     //The columns to display in the meets table
     const meetTableColumns = [
-        { field: 'MEET', headerName: 'ID', flex: 1 },
+        { field: 'MEET', headerName: 'ID', flex: 0.25 },
         { field: 'MNAME', headerName: 'Meet Name', flex: 1 },
-        { field: 'START', headerName: 'Date', flex: 1, valueFormatter: (params) => params.value.toDateString() },
+        {
+            field: 'START', headerName: 'Date', flex: .5, valueFormatter: (params) => {
+                const date = new Date(params.value);
+                const options = {
+                    timeZone: 'UTC',
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                };
+                const formattedDate = date.toLocaleString('en-US', options);
+                return formattedDate;
+            }
+        },
         { field: 'LOCATION', headerName: 'Location', flex: 1 },
         {
-            field: 'MEET_KIND', headerName: 'Meet Type', flex: 1, valueFormatter: (params) => {
+            field: 'MEET_KIND', headerName: 'Meet Type', flex: .5, valueFormatter: (params) => {
                 if (params.value === 'T') {
                     return 'Track & Field';
                 } else if (params.value === 'C') {
@@ -348,7 +361,7 @@ function MeetTable() {
                                     />
                                 </Paper>
                                 <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-                                    <DialogTitle>{meetInfo !== null ? meetInfo.meetName + " Results on " + meetInfo.meetDate.toDateString() : "No Meet Results"}</DialogTitle>
+                                <DialogTitle>{meetInfo !== null ? meetInfo.meetName + " Results on " + new Date(meetInfo.meetDate).toLocaleDateString('en-US', { timeZone: 'UTC' }) : "No Meet Results"}</DialogTitle>
                                     <DialogContent>
                                         <DialogContentText>Table showing athletes, distances, scores, and results for the selected meet.</DialogContentText>
                                         <div style={{ height: 500, width: '100%' }}>
@@ -370,7 +383,7 @@ function MeetTable() {
                                         rowsPerPageOptions={[10]}
                                         autoPageSize
                                         sortModel={[{ field: 'Last', sort: 'asc' }]}
-                                        //onSelectionModelChange={openResultsTable}
+                                    //onSelectionModelChange={openResultsTable}
                                     />
                                 </Paper>
                             </TabPanel>
