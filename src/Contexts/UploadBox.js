@@ -1,5 +1,5 @@
 import React from 'react';
-import './MeetTable.css';
+import '../css/UploadBox.css';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import LoopIcon from '@mui/icons-material/Loop';
 

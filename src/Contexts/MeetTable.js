@@ -1,6 +1,5 @@
 import React, { useState, useContext } from 'react';
-import './App.css';
-import './MeetTable.css';
+import '../css/App.css';
 import UploadBox from './UploadBox';
 import {
     TabContext,
@@ -21,7 +20,7 @@ import {
     Box,
 } from "@mui/material/";
 import { DataGrid } from '@mui/x-data-grid';
-import { DataContext } from './Contexts/DataContext';
+import { DataContext } from './DataContext';
 
 if (typeof Buffer === 'undefined') {
     global.Buffer = require('buffer/').Buffer;

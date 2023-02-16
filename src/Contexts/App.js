@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import '../css/App.css';
 import MeetTable from './MeetTable';
-import DataContext from './Contexts/DataContext';
+import DataContext from './DataContext';
 
 
 
