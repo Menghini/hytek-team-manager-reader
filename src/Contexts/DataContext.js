@@ -264,7 +264,7 @@ function DataContextProvider({ children }) {
                 //There was a weird bug that milliseconds would be 900 higher than it should be
             }
             const showMinutes = minutes >= 1;
-            mark = `${showMinutes ? `${minutes}:` : ''}${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`; //We don't need to format seconds unless there is minutes with any leading zeros
+            mark = `${showMinutes ? `${minutes}:${String(seconds).padStart(2, '0')}` : String(seconds)}.${String(milliseconds).padStart(2, '0')}`; //We don't need to format seconds unless there is minutes with any leading zeros
             if (negative) {
                 mark = "-" + mark;
             }
