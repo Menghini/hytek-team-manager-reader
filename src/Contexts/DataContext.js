@@ -190,25 +190,20 @@ function DataContextProvider({ children }) {
         };
 
     }
-    const findBestImprov = (selectedMeetRows, row) => {
-        let improve = null;
-        const rowsWithSameAthlete = resultsTable.getData().filter(r => r.ATHLETEID === row.ATHLETE);
-        console.log(rowsWithSameAthlete);
-        if (rowsWithSameAthlete.length > 1) {
-            improve = Infinity;
-            const currentMarkMetric = convertRawScoreToMark(row.SCORE, row.MARK_YD).rawMetric;
-            rowsWithSameAthlete.forEach(r => {
-                if (r.id !== row.id) {
-                    const comparedMarkMetric = convertRawScoreToMark(r.SCORE, r.MARK_YD).rawMetric;
-                    const { better, timeBetter } = compareRawScores(currentMarkMetric, row.MARK_YD, comparedMarkMetric, r.MARK_YD);
-                    console.log(row.ATHLETE);
-                    if (better && timeBetter < improve) {
-                        improve = timeBetter;
-                    }
+    const findBestImprov = (baseResultRow) => {
+        let bestDiff = null;
+        let bestRow = null;
+        resultsTable.getData().forEach(selectedRow => {
+            if (selectedRow.ATHLETE === baseResultRow.ATHLETE) {
+                const diff = baseResultRow.SCORE - selectedRow.SCORE;
+                if (!bestDiff || Math.abs(diff) > Math.abs(bestDiff)) {
+                    bestDiff = diff;
+                    bestRow = selectedRow;
                 }
-            });
-        }
-        return improve;
+            }
+        });
+        console.log(convertRawScoreToMark(bestDiff));
+        return { bestDiff, bestRow };
     }
     const convertRawScoreToMark = (score, MARK_YD) => {
         //Score is the raw score from the database.
@@ -272,7 +267,7 @@ function DataContextProvider({ children }) {
             .filter(row => row.MEET === selectedMeetId)
             .map((row, index) => {
                 const { mark, convert } = convertRawScoreToMark(row.SCORE, row.MARK_YD);
-                let improve = findBestImprov(selectedMeetId,row);
+                let improve = convertRawScoreToMark(findBestImprov(row).bestDiff).mark;
                 //console.log(improve);
                 let eventName = '';
                 let eventType = null;
