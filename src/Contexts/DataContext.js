@@ -256,8 +256,12 @@ function DataContextProvider({ children }) {
             minutes = Math.floor(score / 60000);
             seconds = Math.floor((score % 60000) / 1000);
             milliseconds = score % 1000;
+            if(milliseconds>99){
+                milliseconds-=900;
+                //There was a weird bug that milliseconds would be 900 higher than it should be
+            }
             const showMinutes = minutes >= 1;
-            mark = `${showMinutes ? `${minutes}:` : ''}${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+            mark = `${showMinutes ? `${minutes}:` : ''}${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`; //We don't need to format seconds unless there is minutes with any leading zeros
             if(negative){
                 mark = "-"+mark;
             }
@@ -268,7 +272,7 @@ function DataContextProvider({ children }) {
             seconds = Math.floor(scoreInSeconds % 60);
             milliseconds = score % 100;
             const showMinutes = minutes >= 1;
-            mark = `${showMinutes ? `${minutes}:` : ''}${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+            mark = `${showMinutes ? `${minutes}:${String(seconds).padStart(2, '0')}` : String(seconds)}.${String(milliseconds).padStart(2, '0')}`;
         }
         return {
             mark: mark, //Used to denote the result in which it was measured in
