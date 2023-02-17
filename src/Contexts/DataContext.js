@@ -11,7 +11,7 @@ if (typeof Buffer === 'undefined') {
 }
 
 function DataContextProvider({ children }) {
-    
+
     const [loading, setLoading] = useState(false);
     const [fileName, setFileName] = useState('');
     const [selectedMeetRows, setSelectedMeetRows] = useState([]);
@@ -161,11 +161,60 @@ function DataContextProvider({ children }) {
     const handleClose = () => {
         setOpen(false);
     };
+    const compareRawScores = (currentScore, currentScore_YD, comparedScore, comparedScore_YD) => {
+        //currentScore would be at the current meet
+        //currentScore_YD carries the imperial or metric from currentScore
+        //comparedScore should be from a previous meet
+        //comparedScore_YD carries the imperial or metric from comparedScore
+        //Will return true if currentScore is better (less than)
+        let currentScoreMetric, comparedScoreMetric, currentTime, comparedTime, deltaTime;
+        if (currentScore < 0 && comparedScore < 0) {
+            //This is a field event
+            currentScoreMetric = convertRawScoreToMark(currentScore, currentScore_YD).rawMetric;
+            comparedScoreMetric = convertRawScoreToMark(comparedScore, comparedScore_YD).rawMetric;
+        } else {
+            //This is a track event and is measured with time
+            //currentTime = convertRawScoreToMark(currentScore, currentScore_YD);
+            //comparedTime = convertRawScoreToMark(comparedScore, comparedScore_YD);
+            deltaTime = currentScore - comparedScore;
+            //deltaTime.minutes = currentTime.minutes-comparedTime.minutes;
+            //deltaTime.seconds = currentTime.seconds-comparedTime.seconds;
+            //deltaTime.milliseconds = currentTime.minutes-comparedTime.milliseconds;
+        }
 
+
+        return {
+            better: currentScoreMetric < comparedScoreMetric, //Used to denote the result in which it was measured in
+            timeBetter: currentScoreMetric - comparedScoreMetric,
+            deltaTime: deltaTime,
+        };
+
+    }
+    const findBestImprov = (selectedMeetRows, row) => {
+        let improve = null;
+        const rowsWithSameAthlete = resultsTable.getData().filter(r => r.ATHLETEID === row.ATHLETE);
+        console.log(rowsWithSameAthlete);
+        if (rowsWithSameAthlete.length > 1) {
+            improve = Infinity;
+            const currentMarkMetric = convertRawScoreToMark(row.SCORE, row.MARK_YD).rawMetric;
+            rowsWithSameAthlete.forEach(r => {
+                if (r.id !== row.id) {
+                    const comparedMarkMetric = convertRawScoreToMark(r.SCORE, r.MARK_YD).rawMetric;
+                    const { better, timeBetter } = compareRawScores(currentMarkMetric, row.MARK_YD, comparedMarkMetric, r.MARK_YD);
+                    console.log(row.ATHLETE);
+                    if (better && timeBetter < improve) {
+                        improve = timeBetter;
+                    }
+                }
+            });
+        }
+        return improve;
+    }
     const convertRawScoreToMark = (score, MARK_YD) => {
         //Score is the raw score from the database.
         //MARK_YD is either E for imperial or M for metric.
         let mark, convert, rawMetric;
+        let minutes, seconds, milliseconds;
         if (score === 0) {
             mark = "F";
         }
@@ -207,10 +256,12 @@ function DataContextProvider({ children }) {
         return {
             mark: mark, //Used to denote the result in which it was measured in
             convert: convert, //Used to denote the result in which it was converted to
-            rawMetric: rawMetric //Use to help with calculating improvement
+            rawMetric: rawMetric, //Use to help with calculating improvement
+            minutes: minutes,
+            seconds: seconds,
+            milliseconds: milliseconds,
         };
     }
-
     const openResultsTable = (newSelection) => {
         //This is called to set the results table
         const selectedMeetId = newSelection[0];
@@ -221,8 +272,10 @@ function DataContextProvider({ children }) {
             .filter(row => row.MEET === selectedMeetId)
             .map((row, index) => {
                 const { mark, convert } = convertRawScoreToMark(row.SCORE, row.MARK_YD);
+                let improve = findBestImprov(selectedMeetId,row);
+                //console.log(improve);
                 let eventName = '';
-                let eventType;
+                let eventType = null;
                 switch (row.I_R) {
                     case "I":
                         eventType = "Individual";
@@ -299,6 +352,7 @@ function DataContextProvider({ children }) {
                     CONVERT: convert,
                     RESULT: row.RESULT,
                     EVENTTYPE: eventType,
+                    IMPROVE: improve,
                 }
             });
         setSelectedMeetRows(selectedMeetRows);
@@ -316,6 +370,7 @@ function DataContextProvider({ children }) {
         { field: 'EVENTNAME', headerName: 'Event Name', flex: 1 },
         { field: 'SCORE', headerName: 'Mark', flex: 1 },
         { field: 'CONVERT', headerName: 'Convert', flex: 1 },
+        { field: 'IMPROVE', headerName: 'Improvement', flex: 1 },
     ];
 
     //This is the data that I am willing to make public
@@ -325,7 +380,7 @@ function DataContextProvider({ children }) {
         fileName: fileName,
         meetTable: meetTable,
         mainTabsValue: mainTabsValue,
-        handleMainTabsChange: handleMainTabsChange, 
+        handleMainTabsChange: handleMainTabsChange,
         meetTableWithId: meetTableWithId,
         meetTableColumns: meetTableColumns,
         openResultsTable: openResultsTable,
