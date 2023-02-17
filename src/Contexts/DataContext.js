@@ -197,7 +197,7 @@ function DataContextProvider({ children }) {
         let bestTime = null;
         let bestRow = null;
         resultsTable.getData().forEach(selectedRow => {
-            if (selectedRow.ATHLETE === baseResultRow.ATHLETE && selectedRow.DISTANCE === baseResultRow.DISTANCE) {
+            if (selectedRow.ATHLETE === baseResultRow.ATHLETE && selectedRow.DISTANCE === baseResultRow.DISTANCE && selectedRow.MEET != baseResultRow.MEET) {
                 if (!bestTime || selectedRow.SCORE < bestTime) {
                     bestTime = selectedRow.SCORE;
                     diff = compareRawScores(baseResultRow.SCORE, "M", selectedRow.SCORE, "M");
