@@ -197,7 +197,11 @@ function DataContextProvider({ children }) {
         let bestTime = null;
         let bestRow = null;
         resultsTable.getData().forEach(selectedRow => {
-            if (selectedRow.ATHLETE === baseResultRow.ATHLETE && selectedRow.DISTANCE === baseResultRow.DISTANCE && selectedRow.MEET != baseResultRow.MEET) {
+            //First we need to get all the info from the meets table
+            const baseMeet = meetTable && meetTable.find(meetTable => meetTable.MEET === baseResultRow.MEET);
+            const selectedMeet = meetTable && meetTable.find(meetTable => meetTable.MEET === selectedRow.MEET);
+            if (selectedRow.ATHLETE === baseResultRow.ATHLETE && selectedRow.DISTANCE === baseResultRow.DISTANCE && baseMeet.START > selectedMeet.START) {
+                //We will only compare time if the IDs of the athletes are the same, the distance of the race is the same, and this meet's date (START) is larger than the other
                 if (!bestTime || selectedRow.SCORE < bestTime) {
                     bestTime = selectedRow.SCORE;
                     diff = compareRawScores(baseResultRow.SCORE, "M", selectedRow.SCORE, "M");
