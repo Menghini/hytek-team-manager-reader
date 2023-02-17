@@ -167,43 +167,46 @@ function DataContextProvider({ children }) {
         //comparedScore should be from a previous meet
         //comparedScore_YD carries the imperial or metric from comparedScore
         //Will return true if currentScore is better (less than)
-        let currentScoreMetric, comparedScoreMetric, currentTime, comparedTime, deltaTime;
+        let currentScoreMetric, comparedScoreMetric, currentTime, comparedTime, deltaMilliseconds, deltaTime;
         if (currentScore < 0 && comparedScore < 0) {
             //This is a field event
             currentScoreMetric = convertRawScoreToMark(currentScore, currentScore_YD).rawMetric;
             comparedScoreMetric = convertRawScoreToMark(comparedScore, comparedScore_YD).rawMetric;
         } else {
             //This is a track event and is measured with time
-            //currentTime = convertRawScoreToMark(currentScore, currentScore_YD);
-            //comparedTime = convertRawScoreToMark(comparedScore, comparedScore_YD);
-            deltaTime = currentScore - comparedScore;
-            //deltaTime.minutes = currentTime.minutes-comparedTime.minutes;
-            //deltaTime.seconds = currentTime.seconds-comparedTime.seconds;
-            //deltaTime.milliseconds = currentTime.minutes-comparedTime.milliseconds;
+            currentTime = convertRawScoreToMark(currentScore, currentScore_YD);
+            comparedTime = convertRawScoreToMark(comparedScore, comparedScore_YD);
+            deltaMilliseconds = (
+                (currentTime.minutes - comparedTime.minutes) * 60000 +
+                (currentTime.seconds - comparedTime.seconds) * 1000 +
+                (currentTime.milliseconds - comparedTime.milliseconds)
+            );
+            deltaTime = convertRawScoreToMark(deltaMilliseconds, "milliseconds");
         }
 
 
         return {
             better: currentScoreMetric < comparedScoreMetric, //Used to denote the result in which it was measured in
-            timeBetter: currentScoreMetric - comparedScoreMetric,
+            deltaMilliseconds: deltaMilliseconds,
             deltaTime: deltaTime,
         };
 
     }
     const findBestImprov = (baseResultRow) => {
-        let bestDiff = null;
+        let diff = null;
+        let bestTime = null;
         let bestRow = null;
         resultsTable.getData().forEach(selectedRow => {
-            if (selectedRow.ATHLETE === baseResultRow.ATHLETE) {
-                const diff = baseResultRow.SCORE - selectedRow.SCORE;
-                if (!bestDiff || Math.abs(diff) > Math.abs(bestDiff)) {
-                    bestDiff = diff;
+            if (selectedRow.ATHLETE === baseResultRow.ATHLETE && selectedRow.DISTANCE === baseResultRow.DISTANCE) {
+                if (!bestTime || selectedRow.SCORE < bestTime) {
+                    bestTime = selectedRow.SCORE;
+                    diff = compareRawScores(baseResultRow.SCORE, "M", selectedRow.SCORE, "M");
                     bestRow = selectedRow;
                 }
             }
         });
-        console.log(convertRawScoreToMark(bestDiff));
-        return { bestDiff, bestRow };
+        //console.log(convertRawScoreToMark(bestDiff.deltaMilliseconds));
+        return { diff, bestRow };
     }
     const convertRawScoreToMark = (score, MARK_YD) => {
         //Score is the raw score from the database.
@@ -239,12 +242,27 @@ function DataContextProvider({ children }) {
             }
             convert = `${Math.floor(feet).toFixed(0)}-${inches.toFixed(2)}`;
 
-        } else {
+        }else if(MARK_YD==="milliseconds"){
+            //This is a timed event which was scored in milliseconds.
+            //Typically ran because the score was converted to milliseconds before this method
+            let negative = score<0;
+            if(negative){
+                score*=-1; //We have to do calculations as postive.
+            }
+            minutes = Math.floor(score / 60000);
+            seconds = Math.floor((score % 60000) / 1000);
+            milliseconds = score % 1000;
+            const showMinutes = minutes >= 1;
+            mark = `${showMinutes ? `${minutes}:` : ''}${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+            if(negative){
+                mark = "-"+mark;
+            }
+        }else {
             //Timed event
             const scoreInSeconds = score / 100;
-            const minutes = Math.floor(scoreInSeconds / 60);
-            const seconds = Math.floor(scoreInSeconds % 60);
-            const milliseconds = score % 100;
+            minutes = Math.floor(scoreInSeconds / 60);
+            seconds = Math.floor(scoreInSeconds % 60);
+            milliseconds = score % 100;
             const showMinutes = minutes >= 1;
             mark = `${showMinutes ? `${minutes}:` : ''}${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
         }
@@ -267,7 +285,7 @@ function DataContextProvider({ children }) {
             .filter(row => row.MEET === selectedMeetId)
             .map((row, index) => {
                 const { mark, convert } = convertRawScoreToMark(row.SCORE, row.MARK_YD);
-                let improve = convertRawScoreToMark(findBestImprov(row).bestDiff).mark;
+                let improve = findBestImprov(row).diff.deltaTime.mark;
                 //console.log(improve);
                 let eventName = '';
                 let eventType = null;
