@@ -246,26 +246,26 @@ function DataContextProvider({ children }) {
             }
             convert = `${Math.floor(feet).toFixed(0)}-${inches.toFixed(2)}`;
 
-        }else if(MARK_YD==="milliseconds"){
+        } else if (MARK_YD === "milliseconds") {
             //This is a timed event which was scored in milliseconds.
             //Typically ran because the score was converted to milliseconds before this method
-            let negative = score<0;
-            if(negative){
-                score*=-1; //We have to do calculations as postive.
+            let negative = score < 0;
+            if (negative) {
+                score *= -1; //We have to do calculations as postive.
             }
             minutes = Math.floor(score / 60000);
             seconds = Math.floor((score % 60000) / 1000);
             milliseconds = score % 1000;
-            if(milliseconds>99){
-                milliseconds-=900;
+            if (milliseconds > 99) {
+                milliseconds -= 900;
                 //There was a weird bug that milliseconds would be 900 higher than it should be
             }
             const showMinutes = minutes >= 1;
             mark = `${showMinutes ? `${minutes}:` : ''}${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`; //We don't need to format seconds unless there is minutes with any leading zeros
-            if(negative){
-                mark = "-"+mark;
+            if (negative) {
+                mark = "-" + mark;
             }
-        }else {
+        } else {
             //Timed event
             const scoreInSeconds = score / 100;
             minutes = Math.floor(scoreInSeconds / 60);
