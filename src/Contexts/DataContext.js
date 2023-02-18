@@ -96,7 +96,6 @@ function DataContextProvider({ children }) {
                     setResultsTable(resultTable);
                     setAthletesTable(athleteTable.getData());
                 } else {
-                    console.log("This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager");
                     setMeetTable(["This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager"]);
                 }
             } catch (error) {
@@ -172,7 +171,7 @@ function DataContextProvider({ children }) {
             //This is a field event
             currentScoreMetric = convertRawScoreToMark(currentScore, currentScore_YD);
             comparedScoreMetric = convertRawScoreToMark(comparedScore, comparedScore_YD); //.rawMetric
-            deltaDistance = convertRawScoreToMark(currentScoreMetric.rawMetric - comparedScoreMetric.rawMetric, "metric");
+            deltaDistance = convertRawScoreToMark(comparedScoreMetric.rawMetric - currentScoreMetric.rawMetric, "metric");
         } else {
             //This is a track event and is measured with time
             currentTime = convertRawScoreToMark(currentScore, "M");
@@ -202,7 +201,7 @@ function DataContextProvider({ children }) {
             //First we need to get all the info from the meets table
             const baseMeet = meetTable && meetTable.find(meetTable => meetTable.MEET === baseResultRow.MEET);
             const selectedMeet = meetTable && meetTable.find(meetTable => meetTable.MEET === selectedRow.MEET);
-            if (selectedRow.ATHLETE === baseResultRow.ATHLETE && selectedRow.DISTANCE === baseResultRow.DISTANCE && baseMeet.START > selectedMeet.START && selectedRow.I_R === "I" && baseResultRow.I_R === "I" && selectedRow.EVENT && baseResultRow.EVENT) {
+            if (selectedRow.ATHLETE === baseResultRow.ATHLETE && selectedRow.DISTANCE === baseResultRow.DISTANCE && baseMeet.START > selectedMeet.START && selectedRow.I_R === "I" && baseResultRow.I_R === "I" && selectedRow.EVENT === baseResultRow.EVENT) {
                 /*Reminder: ATHLETE is the Athlete ID, DISTANCE is the race distance, START is the the meet's start date
                  * selectedRow.I_R is either a regular individual race (I), split time (N), or an entire relay (R)
                  * EVENT is the type of event it is (dash, run, pole vault, etc)
@@ -213,11 +212,11 @@ function DataContextProvider({ children }) {
                  */
                 if (selectedRow.DISTANCE === 0) {
                     //This must be a field event
-                    if (!bestResult || selectedRow.SCORE < bestResult) {
+                    if (!bestResult || selectedRow.SORT_ID < bestResult) {
                         bestResult = selectedRow.SCORE;
                         diff = compareRawScores(baseResultRow.SCORE, baseResultRow.MARK_YD, selectedRow.SCORE, selectedRow.MARK_YD, true);
+                        console.log(diff);
                         bestRow = selectedRow;
-                        //console.log(diff);
                     }
                 } else {
                     if (!bestResult || selectedRow.SCORE < bestResult) {
@@ -229,7 +228,6 @@ function DataContextProvider({ children }) {
 
             }
         });
-        //console.log(convertRawScoreToMark(bestDiff.deltaMilliseconds));
         return { diff, bestRow };
     }
     const convertRawScoreToMark = (score, MARK_YD) => {
@@ -238,7 +236,7 @@ function DataContextProvider({ children }) {
         let mark, convert, rawMetric;
         let minutes, seconds, milliseconds;
         let isFieldEvent;
-        if (score === 0) {
+        if (score === 0 && MARK_YD != "metric") {
             mark = "F";
         }
         else if (score < 0 && MARK_YD === "E") {
@@ -268,16 +266,17 @@ function DataContextProvider({ children }) {
             }
             convert = `${Math.floor(feet).toFixed(0)}-${inches.toFixed(2)}`;
             isFieldEvent = true;
-        } else if (MARK_YD === "metric"){
-            //This is a timed event which was scored in meters direclty.
+        } else if (MARK_YD === "metric") {
+            //This is a field event which was scored in meters direclty.
             //Typically ran because the score was converted to meters before this method
-            let negative = score < 0;
-            if (negative) {
-                score *= -1; //We have to do calculations as postive.
+            if (score === 0) {
+                //If score is 0, then we don't want it to be "F"
+                rawMetric = ""
+            } else {
+                rawMetric = score;
+                mark = `${score.toFixed(2)}m`;
             }
-            rawMetric = score;
-            mark = `${score.toFixed(2)}m`;
-            
+
         } else if (MARK_YD === "milliseconds") {
             //This is a timed event which was scored in milliseconds.
             //Typically ran because the score was converted to milliseconds before this method
@@ -330,13 +329,11 @@ function DataContextProvider({ children }) {
                 if (improve != null && improve.diff != null && improve.diff.deltaTime != null) {
                     improve = improve.diff.deltaTime.mark;
                 } else if (improve != null && improve.diff != null && improve.diff.deltaDistance != null) {
-                    improve = improve.diff.deltaDistance.mark;
                     console.log(improve);
+                    improve = improve.diff.deltaDistance.mark;
                 } else {
                     improve = "";
                 }
-
-                //console.log(improve);
                 let eventName = '';
                 let eventType = null;
                 switch (row.I_R) {
