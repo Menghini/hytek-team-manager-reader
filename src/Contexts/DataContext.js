@@ -296,7 +296,13 @@ function DataContextProvider({ children }) {
             .filter(row => row.MEET === selectedMeetId)
             .map((row, index) => {
                 const { mark, convert } = convertRawScoreToMark(row.SCORE, row.MARK_YD);
-                let improve = findBestImprov(row).diff.deltaTime.mark;
+                let improve = findBestImprov(row);
+                if (improve != null && improve.diff != null && improve.diff.deltaTime != null) {
+                    improve = improve.diff.deltaTime.mark;
+                }else{
+                    improve = "";
+                }
+
                 //console.log(improve);
                 let eventName = '';
                 let eventType = null;
