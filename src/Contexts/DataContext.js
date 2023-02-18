@@ -213,7 +213,7 @@ function DataContextProvider({ children }) {
                 if (selectedRow.DISTANCE === 0) {
                     //This must be a field event
                     if (!bestResult || selectedRow.SORT_ID < bestResult) {
-                        bestResult = selectedRow.SCORE;
+                        bestResult = selectedRow.SORT_ID;
                         diff = compareRawScores(baseResultRow.SCORE, baseResultRow.MARK_YD, selectedRow.SCORE, selectedRow.MARK_YD, true);
                         console.log(diff);
                         bestRow = selectedRow;
