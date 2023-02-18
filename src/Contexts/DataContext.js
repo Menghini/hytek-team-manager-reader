@@ -225,15 +225,15 @@ function DataContextProvider({ children }) {
         }
         else if (score < 0 && MARK_YD === "E") {
             //Imperial Scored Field Event
-            const feet = Math.floor(score * -1 / 100) / 12;
+            const feet = Math.floor(Math.floor(score * -1 / 100) / 12);
             const inches = (score * -1 / 100) % 12;
-            convert = ((feet * 12 + inches) * 0.0254).toFixed(2) + "m";
+            convert = (Math.floor((feet * 12 + inches) * 1000 * 0.0254) / 1000).toFixed(3) + "m";
             rawMetric = ((feet * 12 + inches) * 0.0254);
             let inchString = inches.toFixed(2);
             if (inchString.length === 4) {
                 inchString = "0" + inchString;
             }
-            mark = `${feet.toFixed(0)}-${inchString}`;
+            mark = `${Math.floor(feet)}-${inchString}`;
         } else if (score < 0 && MARK_YD === "M") {
             //Metric Scored Field Event
             const meters = score * -1 / 100;
@@ -299,7 +299,7 @@ function DataContextProvider({ children }) {
                 let improve = findBestImprov(row);
                 if (improve != null && improve.diff != null && improve.diff.deltaTime != null) {
                     improve = improve.diff.deltaTime.mark;
-                }else{
+                } else {
                     improve = "";
                 }
 
