@@ -161,21 +161,22 @@ function DataContextProvider({ children }) {
     const handleClose = () => {
         setOpen(false);
     };
-    const compareRawScores = (currentScore, currentScore_YD, comparedScore, comparedScore_YD) => {
+    const compareRawScores = (currentScore, currentScore_YD, comparedScore, comparedScore_YD, isFieldEvent) => {
         //currentScore would be at the current meet
         //currentScore_YD carries the imperial or metric from currentScore
         //comparedScore should be from a previous meet
         //comparedScore_YD carries the imperial or metric from comparedScore
         //Will return true if currentScore is better (less than)
-        let currentScoreMetric, comparedScoreMetric, currentTime, comparedTime, deltaMilliseconds, deltaTime;
-        if (currentScore < 0 && comparedScore < 0) {
+        let currentScoreMetric, comparedScoreMetric, currentTime, comparedTime, deltaMilliseconds, deltaTime, deltaDistance;
+        if (isFieldEvent) {
             //This is a field event
-            currentScoreMetric = convertRawScoreToMark(currentScore, currentScore_YD).rawMetric;
-            comparedScoreMetric = convertRawScoreToMark(comparedScore, comparedScore_YD).rawMetric;
+            currentScoreMetric = convertRawScoreToMark(currentScore, currentScore_YD);
+            comparedScoreMetric = convertRawScoreToMark(comparedScore, comparedScore_YD); //.rawMetric
+            deltaDistance = convertRawScoreToMark(currentScoreMetric.rawMetric - comparedScoreMetric.rawMetric, "metric");
         } else {
             //This is a track event and is measured with time
-            currentTime = convertRawScoreToMark(currentScore, currentScore_YD);
-            comparedTime = convertRawScoreToMark(comparedScore, comparedScore_YD);
+            currentTime = convertRawScoreToMark(currentScore, "M");
+            comparedTime = convertRawScoreToMark(comparedScore, "M");
             deltaMilliseconds = (
                 (currentTime.minutes - comparedTime.minutes) * 60000 +
                 (currentTime.seconds - comparedTime.seconds) * 1000 +
@@ -189,27 +190,43 @@ function DataContextProvider({ children }) {
             better: currentScoreMetric < comparedScoreMetric, //Used to denote the result in which it was measured in
             deltaMilliseconds: deltaMilliseconds,
             deltaTime: deltaTime,
+            deltaDistance: deltaDistance,
         };
 
     }
     const findBestImprov = (baseResultRow) => {
         let diff = null;
-        let bestTime = null;
+        let bestResult = null;
         let bestRow = null;
         resultsTable.getData().forEach(selectedRow => {
             //First we need to get all the info from the meets table
             const baseMeet = meetTable && meetTable.find(meetTable => meetTable.MEET === baseResultRow.MEET);
             const selectedMeet = meetTable && meetTable.find(meetTable => meetTable.MEET === selectedRow.MEET);
-            if (selectedRow.ATHLETE === baseResultRow.ATHLETE && selectedRow.DISTANCE === baseResultRow.DISTANCE && baseMeet.START > selectedMeet.START && selectedRow.I_R === "I" && baseResultRow.I_R === "I") {
-                /*We will only compare time if the IDs of the athletes are the same, 
+            if (selectedRow.ATHLETE === baseResultRow.ATHLETE && selectedRow.DISTANCE === baseResultRow.DISTANCE && baseMeet.START > selectedMeet.START && selectedRow.I_R === "I" && baseResultRow.I_R === "I" && selectedRow.EVENT && baseResultRow.EVENT) {
+                /*Reminder: ATHLETE is the Athlete ID, DISTANCE is the race distance, START is the the meet's start date
+                 * selectedRow.I_R is either a regular individual race (I), split time (N), or an entire relay (R)
+                 * EVENT is the type of event it is (dash, run, pole vault, etc)
+                 * We will only compare time if the IDs of the athletes are the same, 
                  * the distance of the race is the same
                  * this meet's date (START) is larger than the other
-                 * and that each event is an individual event, as opposed to a relay split*/
-                if (!bestTime || selectedRow.SCORE < bestTime) {
-                    bestTime = selectedRow.SCORE;
-                    diff = compareRawScores(baseResultRow.SCORE, "M", selectedRow.SCORE, "M");
-                    bestRow = selectedRow;
+                 * and that each event is an individual event, as opposed to a relay split
+                 */
+                if (selectedRow.DISTANCE === 0) {
+                    //This must be a field event
+                    if (!bestResult || selectedRow.SCORE < bestResult) {
+                        bestResult = selectedRow.SCORE;
+                        diff = compareRawScores(baseResultRow.SCORE, baseResultRow.MARK_YD, selectedRow.SCORE, selectedRow.MARK_YD, true);
+                        bestRow = selectedRow;
+                        //console.log(diff);
+                    }
+                } else {
+                    if (!bestResult || selectedRow.SCORE < bestResult) {
+                        bestResult = selectedRow.SCORE;
+                        diff = compareRawScores(baseResultRow.SCORE, "M", selectedRow.SCORE, "M", false);
+                        bestRow = selectedRow;
+                    }
                 }
+
             }
         });
         //console.log(convertRawScoreToMark(bestDiff.deltaMilliseconds));
@@ -220,6 +237,7 @@ function DataContextProvider({ children }) {
         //MARK_YD is either E for imperial or M for metric.
         let mark, convert, rawMetric;
         let minutes, seconds, milliseconds;
+        let isFieldEvent;
         if (score === 0) {
             mark = "F";
         }
@@ -234,6 +252,7 @@ function DataContextProvider({ children }) {
                 inchString = "0" + inchString;
             }
             mark = `${Math.floor(feet)}-${inchString}`;
+            isFieldEvent = true;
         } else if (score < 0 && MARK_YD === "M") {
             //Metric Scored Field Event
             const meters = score * -1 / 100;
@@ -248,7 +267,17 @@ function DataContextProvider({ children }) {
                 inches = Math.round(inches / 0.25) * 0.25; // round to nearest quarter inch
             }
             convert = `${Math.floor(feet).toFixed(0)}-${inches.toFixed(2)}`;
-
+            isFieldEvent = true;
+        } else if (MARK_YD === "metric"){
+            //This is a timed event which was scored in meters direclty.
+            //Typically ran because the score was converted to meters before this method
+            let negative = score < 0;
+            if (negative) {
+                score *= -1; //We have to do calculations as postive.
+            }
+            rawMetric = score;
+            mark = `${score.toFixed(2)}m`;
+            
         } else if (MARK_YD === "milliseconds") {
             //This is a timed event which was scored in milliseconds.
             //Typically ran because the score was converted to milliseconds before this method
@@ -281,6 +310,7 @@ function DataContextProvider({ children }) {
             mark: mark, //Used to denote the result in which it was measured in
             convert: convert, //Used to denote the result in which it was converted to
             rawMetric: rawMetric, //Use to help with calculating improvement
+            isFieldEvent: isFieldEvent,
             minutes: minutes,
             seconds: seconds,
             milliseconds: milliseconds,
@@ -295,10 +325,13 @@ function DataContextProvider({ children }) {
         const selectedMeetRows = resultsTable.getData()
             .filter(row => row.MEET === selectedMeetId)
             .map((row, index) => {
-                const { mark, convert } = convertRawScoreToMark(row.SCORE, row.MARK_YD);
+                const { mark, convert, rawMetric, isFieldEvent } = convertRawScoreToMark(row.SCORE, row.MARK_YD);
                 let improve = findBestImprov(row);
                 if (improve != null && improve.diff != null && improve.diff.deltaTime != null) {
                     improve = improve.diff.deltaTime.mark;
+                } else if (improve != null && improve.diff != null && improve.diff.deltaDistance != null) {
+                    improve = improve.diff.deltaDistance.mark;
+                    console.log(improve);
                 } else {
                     improve = "";
                 }
@@ -383,6 +416,8 @@ function DataContextProvider({ children }) {
                     RESULT: row.RESULT,
                     EVENTTYPE: eventType,
                     IMPROVE: improve,
+                    RAWMETRIC: rawMetric,
+                    ISFIELDEVENT: isFieldEvent,
                 }
             });
         setSelectedMeetRows(selectedMeetRows);
@@ -401,6 +436,7 @@ function DataContextProvider({ children }) {
         { field: 'SCORE', headerName: 'Mark', flex: 1 },
         { field: 'CONVERT', headerName: 'Convert', flex: 1 },
         { field: 'IMPROVE', headerName: 'Improvement', flex: 1 },
+        { field: 'RAWMETRIC', headerName: 'Raw Metric', flex: 1 },
     ];
 
     //This is the data that I am willing to make public
