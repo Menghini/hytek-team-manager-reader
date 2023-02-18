@@ -20,7 +20,7 @@ import {
     Box,
 } from "@mui/material/";
 import { DataGrid } from '@mui/x-data-grid';
-import { DataContext } from './DataContext';
+import { DataContext } from '../Contexts/DataContext';
 import MeetsTab from './MeetsTab';
 
 

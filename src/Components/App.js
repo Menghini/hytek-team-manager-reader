@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import '../css/App.css';
 import MainTabs from './MainTabs';
-import DataContext from './DataContext';
+import DataContext from '../Contexts/DataContext';
 
 
 

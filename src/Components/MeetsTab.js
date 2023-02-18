@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { DataContext } from './DataContext';
+import { DataContext } from '../Contexts/DataContext';
 import {
     Paper,
 } from "@mui/material/";
