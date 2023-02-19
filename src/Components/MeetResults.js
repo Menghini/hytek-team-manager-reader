@@ -96,32 +96,18 @@ function MeetResults() {
                 <TabPanel value="2">
                     {/*if the first tab is selected, then PR info will show up here*/}
                     <DialogContent>
-                        <Grid container spacing={0}>
-                            <Grid item xs={12} md={6}>
-                                <Typography sx={{ mt: 4, mb: 2 }} variant="h6" component="div">
-                                    The following people PRed:
-                                </Typography>
-                                <Demo>
-                                    {/*console.log(selectedMeetRows)*/}
-                                    <List dense={true}>
-                                        {selectedMeetRows.filter(row => row.IMPROVE.charAt(0) === '-').length > 0 ? (
-                                            selectedMeetRows.map((row) => (
-                                                (row.IMPROVE.charAt(0) === '-') &&
-                                                <ListItem key={row.id}>
-                                                    <ListItemText primary={`${row.FIRST} ${row.LAST} PRed in the ${row.EVENTNAME} with a PR of ${row.SCORE}`} />
-                                                </ListItem>
-                                            ))
-                                        ) : (
-                                            <ListItem>
-                                                <ListItemText primary="No one PRed during this meet" />
-                                            </ListItem>
-                                        )}
-                                    </List>
-
-                                </Demo>
-                            </Grid>
-
-                        </Grid>
+                        <ul>
+                            {selectedMeetRows.filter(row => row.IMPROVE.charAt(0) === '-').length > 0 ? (
+                                selectedMeetRows.map((row) => (
+                                    (row.IMPROVE.charAt(0) === '-') &&
+                                    <li key={row.id}>
+                                        {`${row.FIRST} ${row.LAST} PRed in the ${row.EVENTNAME} with a PR of ${row.SCORE}`}
+                                    </li>
+                                ))
+                            ) : (
+                                <Typography sx={{ marginBottom: "8px" }}>No one PRed during this meet</Typography>
+                            )}
+                        </ul>
                     </DialogContent>
                 </TabPanel>
             </TabContext>
