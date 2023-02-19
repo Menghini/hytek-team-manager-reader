@@ -333,7 +333,6 @@ function DataContextProvider({ children }) {
                     improve = improve.diff.deltaTime.mark;
                 } else if (improve != null && improve.diff != null && improve.diff.deltaDistance != null) {
                     //If this is a field event
-                    console.log(improve.diff.deltaDistance);
                     improveConvert = improve.diff.deltaDistance.convert.formatted;
                     improve = improve.diff.deltaDistance.mark;
                 } else {
