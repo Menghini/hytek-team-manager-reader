@@ -20,7 +20,7 @@ function DataContextProvider({ children }) {
     const [resultsTable, setResultsTable] = useState([]);
     const [athletesTable, setAthletesTable] = useState([]);
     const [meetInfo, setMeetInfo] = useState(null);
-    const [mainTabsValue, setMainTabsValue] = React.useState(1);
+
 
     const requiredTables = [
         "AGEGROUPS",
@@ -54,15 +54,7 @@ function DataContextProvider({ children }) {
         "TMREG"
     ];
 
-    const handleMainTabsChange = (event, newValue) => {
-        //This code is ran once to set the tabs to the first tab.
-        setMainTabsValue(newValue);
-    };
 
-
-    React.useEffect(() => {
-        setMainTabsValue("1");
-    }, []);
 
 
     const handleFileDrop = (event) => {
@@ -457,8 +449,6 @@ function DataContextProvider({ children }) {
         handleFileDrop: handleFileDrop,
         fileName: fileName,
         meetTable: meetTable,
-        mainTabsValue: mainTabsValue,
-        handleMainTabsChange: handleMainTabsChange,
         meetTableWithId: meetTableWithId,
         meetTableColumns: meetTableColumns,
         openResultsTable: openResultsTable,

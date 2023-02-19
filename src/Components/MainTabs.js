@@ -28,11 +28,22 @@ import AthletesTab from './AthletesTab';
 
 
 function MainTabs() {
+
+    const [mainTabsValue, setMainTabsValue] = React.useState(1);
+
+    const handleMainTabsChange = (event, newValue) => {
+        //This code is ran once to set the tabs to the first tab.
+        setMainTabsValue(newValue);
+    };
+
+
+    React.useEffect(() => {
+        setMainTabsValue("1");
+    }, []);
+
     const { handleFileDrop,
         fileName,
         meetTable,
-        mainTabsValue,
-        handleMainTabsChange,
         meetTableWithId,
         meetTableColumns,
         openResultsTable,
