@@ -99,21 +99,25 @@ function MeetResults() {
                         <Grid container spacing={0}>
                             <Grid item xs={12} md={6}>
                                 <Typography sx={{ mt: 4, mb: 2 }} variant="h6" component="div">
-                                    PRs will be listed here
+                                    The following people PRed:
                                 </Typography>
                                 <Demo>
+                                    {/*console.log(selectedMeetRows)*/}
                                     <List dense={true}>
-                                        {generate(
-                                            <ListItem wrap="wrap">
-                                                <ListItemText
-                                                    primary={
-                                                        "blah"
-                                                    }
-                                                    sx={{ flexWrap: 'wrap' }}
-                                                />
-                                            </ListItem>,
+                                        {selectedMeetRows.filter(row => row.IMPROVE.charAt(0) === '-').length > 0 ? (
+                                            selectedMeetRows.map((row) => (
+                                                (row.IMPROVE.charAt(0) === '-') &&
+                                                <ListItem key={row.id}>
+                                                    <ListItemText primary={`${row.FIRST} ${row.LAST} PRed in the ${row.EVENTNAME} with a PR of ${row.SCORE}`} />
+                                                </ListItem>
+                                            ))
+                                        ) : (
+                                            <ListItem>
+                                                <ListItemText primary="No one PRed during this meet" />
+                                            </ListItem>
                                         )}
                                     </List>
+
                                 </Demo>
                             </Grid>
 
