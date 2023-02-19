@@ -426,7 +426,10 @@ function DataContextProvider({ children }) {
         setOpen(true);
     };
 
-
+    const returnPRs = (rows) => {
+        console.log(rows);
+        return "<ul><li>test</li><li>testing</li></ul>";
+    }
 
 
     const resultsTableColumns = [
@@ -459,6 +462,7 @@ function DataContextProvider({ children }) {
         athletesTableColumns: athletesTableColumns,
         loading: loading,
         open: open,
+        returnPRs: returnPRs,
         //Whatever fields
     }
     const [state, setState] = useState(IDataContext);

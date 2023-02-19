@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import '../css/App.css';
+import { styled } from '@mui/material/styles';
 import {
     TabContext,
     TabPanel,
@@ -17,10 +18,16 @@ import {
     Tab,
     TablePaginationBaseProps,
     Box,
+    Grid,
+    List,
+    ListItem,
+    ListItemText,
+    Typography,
 } from "@mui/material/";
 import { DataGrid } from '@mui/x-data-grid';
 import { DataContext } from '../Contexts/DataContext';
 import MeetsTab from './MeetsTab';
+import { LocalPrintshopSharp } from '@mui/icons-material';
 
 
 
@@ -52,10 +59,24 @@ function MeetResults() {
         athletesTableColumns,
         loading,
         open,
+        returnPRs,
     } = useContext(DataContext);
+
+    const Demo = styled('div')(({ theme }) => ({
+        backgroundColor: theme.palette.background.paper,
+    }));
+
+    function generate(element) {
+        return [0, 1, 2].map((value) =>
+            React.cloneElement(element, {
+                key: value,
+            }),
+        );
+    }
+
     return (
         <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-            <TabContext value={meetResultsTabValue}>
+            <TabContext value={meetResultsTabValue.toString()}>
                 <DialogTitle>{meetInfo !== null ? meetInfo.meetName + " Results on " + new Date(meetInfo.meetDate).toLocaleDateString('en-US', { timeZone: 'UTC' }) : "No Meet Results"}</DialogTitle>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <TabList onChange={handleMeetResultsTabsChange} aria-label="lab API tabs example">
@@ -74,14 +95,37 @@ function MeetResults() {
                 </TabPanel>
                 <TabPanel value="2">
                     {/*if the first tab is selected, then PR info will show up here*/}
-                    <DialogContentText>PRs will be listed here</DialogContentText>
+                    <DialogContent>
+                        <Grid container spacing={0}>
+                            <Grid item xs={12} md={6}>
+                                <Typography sx={{ mt: 4, mb: 2 }} variant="h6" component="div">
+                                    PRs will be listed here
+                                </Typography>
+                                <Demo>
+                                    <List dense={true}>
+                                        {generate(
+                                            <ListItem wrap="wrap">
+                                                <ListItemText
+                                                    primary={
+                                                        "blah"
+                                                    }
+                                                    sx={{ flexWrap: 'wrap' }}
+                                                />
+                                            </ListItem>,
+                                        )}
+                                    </List>
+                                </Demo>
+                            </Grid>
+
+                        </Grid>
+                    </DialogContent>
                 </TabPanel>
             </TabContext>
 
             <DialogActions>
                 <Button onClick={handleClose}>Close</Button>
             </DialogActions>
-        </Dialog>
+        </Dialog >
     );
 }
 
