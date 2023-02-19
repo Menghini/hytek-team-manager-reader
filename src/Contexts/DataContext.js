@@ -170,7 +170,7 @@ function DataContextProvider({ children }) {
         if (isFieldEvent) {
             //This is a field event
             currentScoreMetric = convertRawScoreToMark(currentScore, currentScore_YD);
-            comparedScoreMetric = convertRawScoreToMark(comparedScore, comparedScore_YD); //.rawMetric
+            comparedScoreMetric = convertRawScoreToMark(comparedScore, comparedScore_YD);
             deltaDistance = convertRawScoreToMark(comparedScoreMetric.rawMetric - currentScoreMetric.rawMetric, "metric");
         } else {
             //This is a track event and is measured with time
@@ -215,7 +215,6 @@ function DataContextProvider({ children }) {
                     if (!bestResult || selectedRow.SORT_ID < bestResult) {
                         bestResult = selectedRow.SORT_ID;
                         diff = compareRawScores(baseResultRow.SCORE, baseResultRow.MARK_YD, selectedRow.SCORE, selectedRow.MARK_YD, true);
-                        console.log(diff);
                         bestRow = selectedRow;
                     }
                 } else {
@@ -229,6 +228,23 @@ function DataContextProvider({ children }) {
             }
         });
         return { diff, bestRow };
+    }
+    const metricToImperial = (meters) => {
+        //Must already meet in meters.
+        let feet = meters * 3.28084;
+        let inches = (feet - Math.floor(feet)) * 12;
+        if (inches === 12.00) {
+            feet += 1;
+            inches = 0;
+        } else {
+            inches = Math.round(inches / 0.25) * 0.25; // round to nearest quarter inch
+        }
+        let convert = `${Math.floor(feet).toFixed(0)}-${inches.toFixed(2)}`;
+        return {
+            formatted: convert, //The formatted string
+            feet: feet,
+            inches: inches,
+        };
     }
     const convertRawScoreToMark = (score, MARK_YD) => {
         //Score is the raw score from the database.
@@ -256,15 +272,7 @@ function DataContextProvider({ children }) {
             const meters = score * -1 / 100;
             rawMetric = meters;
             mark = `${meters.toFixed(2)}m`;
-            let feet = meters * 3.28084;
-            let inches = (feet - Math.floor(feet)) * 12;
-            if (inches === 12.00) {
-                feet += 1;
-                inches = 0;
-            } else {
-                inches = Math.round(inches / 0.25) * 0.25; // round to nearest quarter inch
-            }
-            convert = `${Math.floor(feet).toFixed(0)}-${inches.toFixed(2)}`;
+            convert = metricToImperial(meters).convert;
             isFieldEvent = true;
         } else if (MARK_YD === "metric") {
             //This is a field event which was scored in meters direclty.
@@ -272,9 +280,11 @@ function DataContextProvider({ children }) {
             if (score === 0) {
                 //If score is 0, then we don't want it to be "F"
                 rawMetric = ""
+                convert = ""
             } else {
                 rawMetric = score;
                 mark = `${score.toFixed(2)}m`;
+                convert = metricToImperial(rawMetric);
             }
 
         } else if (MARK_YD === "milliseconds") {
@@ -326,10 +336,13 @@ function DataContextProvider({ children }) {
             .map((row, index) => {
                 const { mark, convert, rawMetric, isFieldEvent } = convertRawScoreToMark(row.SCORE, row.MARK_YD);
                 let improve = findBestImprov(row);
+                let improveConvert;
                 if (improve != null && improve.diff != null && improve.diff.deltaTime != null) {
                     improve = improve.diff.deltaTime.mark;
                 } else if (improve != null && improve.diff != null && improve.diff.deltaDistance != null) {
-                    console.log(improve);
+                    //If this is a field event
+                    console.log(improve.diff.deltaDistance);
+                    improveConvert = improve.diff.deltaDistance.convert.formatted;
                     improve = improve.diff.deltaDistance.mark;
                 } else {
                     improve = "";
@@ -413,6 +426,7 @@ function DataContextProvider({ children }) {
                     RESULT: row.RESULT,
                     EVENTTYPE: eventType,
                     IMPROVE: improve,
+                    IMPROVEIMPERIAL: improveConvert,
                     RAWMETRIC: rawMetric,
                     ISFIELDEVENT: isFieldEvent,
                 }
@@ -427,13 +441,14 @@ function DataContextProvider({ children }) {
     const resultsTableColumns = [
         { field: 'LAST', headerName: 'Last Name', flex: 1 },
         { field: 'FIRST', headerName: 'First Name', flex: 1 },
-        { field: 'ATHLETEID', headerName: 'Athlete ID', flex: 1 },
+        //{ field: 'ATHLETEID', headerName: 'Athlete ID', flex: 1 },
         { field: 'EVENTTYPE', headerName: 'Event Type', flex: 1 },
         { field: 'EVENTNAME', headerName: 'Event Name', flex: 1 },
         { field: 'SCORE', headerName: 'Mark', flex: 1 },
         { field: 'CONVERT', headerName: 'Convert', flex: 1 },
         { field: 'IMPROVE', headerName: 'Improvement', flex: 1 },
-        { field: 'RAWMETRIC', headerName: 'Raw Metric', flex: 1 },
+        //{ field: 'RAWMETRIC', headerName: 'Raw Metric', flex: 1 },
+        { field: 'IMPROVEIMPERIAL', headerName: 'Improv Convert', flex: 1 },
     ];
 
     //This is the data that I am willing to make public
