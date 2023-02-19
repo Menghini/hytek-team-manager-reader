@@ -413,7 +413,7 @@ function DataContextProvider({ children }) {
                     id: index,
                     //Below concatenates the last name and first name with a comma
                     //ATHLETE: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Last + ', ' + athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.First,
-                    FIRST: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.First,
+                    FIRST: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Pref || athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.First,
                     LAST: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Last,
                     GRADYEAR: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Comp_No,
                     //GradYear will be stored as the Comp_No column.
