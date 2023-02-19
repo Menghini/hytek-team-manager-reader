@@ -135,6 +135,11 @@ function DataContextProvider({ children }) {
         { field: 'Athlete', headerName: 'ID', flex: 1 },
         { field: 'Last', headerName: 'Last Name', flex: 1 },
         { field: 'First', headerName: 'First Name', flex: 1 },
+        { field: 'Pref', headerName: 'Preferred Name', flex: 1 },
+        { field: 'Sex', headerName: 'Gender', flex: 1 },
+        { field: 'Class', headerName: 'Class', flex: 1 },
+        { field: 'Comp_No', headerName: 'Grad Year', flex: 1 },
+        { field: 'Inactive', headerName: 'Inactive', flex: 1 },
     ];
 
     const meetTableWithId = meetTable.map((row, index) => {
@@ -410,6 +415,8 @@ function DataContextProvider({ children }) {
                     //ATHLETE: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Last + ', ' + athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.First,
                     FIRST: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.First,
                     LAST: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Last,
+                    GRADYEAR: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Comp_No,
+                    //GradYear will be stored as the Comp_No column.
                     ATHLETEID: row.ATHLETE,
                     EVENTNAME: eventName,
                     SCORE: mark,

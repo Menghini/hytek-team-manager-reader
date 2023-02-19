@@ -101,7 +101,7 @@ function MeetResults() {
                                 selectedMeetRows.map((row) => (
                                     (row.IMPROVE.charAt(0) === '-') &&
                                     <li key={row.id}>
-                                        {`${row.FIRST} ${row.LAST} PRed in the ${row.EVENTNAME} with a PR of ${row.SCORE}`}
+                                        {`${row.FIRST} ${row.LAST} '${row.GRADYEAR} PRed in the ${row.EVENTNAME} with a PR of ${row.SCORE}`}
                                     </li>
                                 ))
                             ) : (
