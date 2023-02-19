@@ -264,7 +264,7 @@ function DataContextProvider({ children }) {
             const meters = score * -1 / 100;
             rawMetric = meters;
             mark = `${meters.toFixed(2)}m`;
-            convert = metricToImperial(meters).convert;
+            convert = metricToImperial(meters).formatted;
             isFieldEvent = true;
         } else if (MARK_YD === "metric") {
             //This is a field event which was scored in meters direclty.
