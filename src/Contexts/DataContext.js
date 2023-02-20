@@ -321,116 +321,118 @@ function DataContextProvider({ children }) {
             milliseconds: milliseconds,
         };
     }
+    const mapRowToResult = (row, index, athletesTable) => {
+        const { mark, convert, rawMetric, isFieldEvent } = convertRawScoreToMark(row.SCORE, row.MARK_YD);
+        let improve = findBestImprov(row);
+        let improveConvert;
+        if (improve != null && improve.diff != null && improve.diff.deltaTime != null) {
+            improve = improve.diff.deltaTime.mark;
+        } else if (improve != null && improve.diff != null && improve.diff.deltaDistance != null) {
+            //If this is a field event
+            improveConvert = improve.diff.deltaDistance.convert.formatted;
+            improve = improve.diff.deltaDistance.mark;
+        } else {
+            improve = "";
+        }
+        let eventName = '';
+        let eventType = null;
+        switch (row.I_R) {
+            case "I":
+                eventType = "Individual";
+                break;
+            case "R":
+                eventType = "Relay";
+                break;
+            case "N":
+                eventType = "Relay Split";
+                break;
+            default:
+                eventType = "";
+                break;
+        }
+        switch (row.EVENT) {
+            case 1:
+                eventName = row.DISTANCE + 'M Dash';
+                break;
+            case 2:
+                eventName = row.DISTANCE + 'M Run';
+                break;
+            case 3:
+                eventName = row.DISTANCE / 10 + ' Mile Run';
+                break;
+            case 5:
+                eventName = row.DISTANCE + 'M Hurdles';
+                break;
+            case 9:
+                eventName = 'High Jump';
+                break;
+            case 10:
+                eventName = 'Pole Vault';
+                break;
+            case 11:
+                eventName = 'Long Jump';
+                break;
+            case 12:
+                eventName = 'Triple Jump';
+                break;
+            case 13:
+                eventName = 'Shot Put';
+                break;
+            case 14:
+                eventName = 'Discus';
+                break;
+            case 15:
+                eventName = 'Hammer';
+                break;
+            case 16:
+                eventName = 'Javelin';
+                break;
+            case 17:
+                eventName = 'Weight Throw';
+                break;
+            case 19:
+                eventName = '4x' + row.DISTANCE / 4 + 'M Relay';
+                break;
+            case 31:
+                eventName = 'Super Weight';
+                break;
+            default:
+                eventName = '?UNKOWN?';
+                break;
+        }
+        return {
+            id: index,
+            //Below concatenates the last name and first name with a comma
+            //ATHLETE: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Last + ', ' + athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.First,
+            FIRST: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Pref || athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.First,
+            LAST: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Last,
+            GRADYEAR: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Comp_No,
+            //GradYear will be stored as the Comp_No column.
+            ATHLETEID: row.ATHLETE,
+            EVENTNAME: eventName,
+            SCORE: mark,
+            CONVERT: convert,
+            RESULT: row.RESULT,
+            EVENTTYPE: eventType,
+            IMPROVE: improve,
+            IMPROVEIMPERIAL: improveConvert,
+            RAWMETRIC: rawMetric,
+            ISFIELDEVENT: isFieldEvent,
+            SORTID: row.SORT_ID,
+        };
+    };
     const openResultsTable = (newSelection) => {
-        //This is called to set the results table
         const selectedMeetId = newSelection[0];
         const meet = meetTable && meetTable.find(meetTable => meetTable.MEET === selectedMeetId);
         const meetInfoToBePassedIn = { meetName: meet?.MNAME, meetDate: meet?.START };
         setMeetInfo(meetInfoToBePassedIn);
+
         const selectedMeetRows = resultsTable.getData()
             .filter(row => row.MEET === selectedMeetId)
-            .map((row, index) => {
-                const { mark, convert, rawMetric, isFieldEvent } = convertRawScoreToMark(row.SCORE, row.MARK_YD);
-                let improve = findBestImprov(row);
-                let improveConvert;
-                if (improve != null && improve.diff != null && improve.diff.deltaTime != null) {
-                    improve = improve.diff.deltaTime.mark;
-                } else if (improve != null && improve.diff != null && improve.diff.deltaDistance != null) {
-                    //If this is a field event
-                    improveConvert = improve.diff.deltaDistance.convert.formatted;
-                    improve = improve.diff.deltaDistance.mark;
-                } else {
-                    improve = "";
-                }
-                let eventName = '';
-                let eventType = null;
-                switch (row.I_R) {
-                    case "I":
-                        eventType = "Individual";
-                        break;
-                    case "R":
-                        eventType = "Relay";
-                        break;
-                    case "N":
-                        eventType = "Relay Split";
-                        break;
-                    default:
-                        eventType = "";
-                        break;
-                }
-                switch (row.EVENT) {
-                    case 1:
-                        eventName = row.DISTANCE + 'M Dash';
-                        break;
-                    case 2:
-                        eventName = row.DISTANCE + 'M Run';
-                        break;
-                    case 3:
-                        eventName = row.DISTANCE / 10 + ' Mile Run';
-                        break;
-                    case 5:
-                        eventName = row.DISTANCE + 'M Hurdles';
-                        break;
-                    case 9:
-                        eventName = 'High Jump';
-                        break;
-                    case 10:
-                        eventName = 'Pole Vault';
-                        break;
-                    case 11:
-                        eventName = 'Long Jump';
-                        break;
-                    case 12:
-                        eventName = 'Triple Jump';
-                        break;
-                    case 13:
-                        eventName = 'Shot Put';
-                        break;
-                    case 14:
-                        eventName = 'Discus';
-                        break;
-                    case 15:
-                        eventName = 'Hammer';
-                        break;
-                    case 16:
-                        eventName = 'Javelin';
-                        break;
-                    case 17:
-                        eventName = 'Weight Throw';
-                        break;
-                    case 19:
-                        eventName = '4x' + row.DISTANCE / 4 + 'M Relay';
-                        break;
-                    case 31:
-                        eventName = 'Super Weight';
-                        break;
-                    default:
-                        eventName = '?UNKOWN?';
-                        break;
-                }
-                return {
-                    id: index,
-                    //Below concatenates the last name and first name with a comma
-                    //ATHLETE: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Last + ', ' + athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.First,
-                    FIRST: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Pref || athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.First,
-                    LAST: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Last,
-                    GRADYEAR: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Comp_No,
-                    //GradYear will be stored as the Comp_No column.
-                    ATHLETEID: row.ATHLETE,
-                    EVENTNAME: eventName,
-                    SCORE: mark,
-                    CONVERT: convert,
-                    RESULT: row.RESULT,
-                    EVENTTYPE: eventType,
-                    IMPROVE: improve,
-                    IMPROVEIMPERIAL: improveConvert,
-                    RAWMETRIC: rawMetric,
-                    ISFIELDEVENT: isFieldEvent,
-                    SORTID: row.SORT_ID,
-                }
-            });
+            .map((row, index) => mapRowToResult(row, index, athletesTable));
         setSelectedMeetRows(selectedMeetRows);
         setOpen(true);
+        return selectedMeetRows;
     };
 
     const returnPRs = (rows) => {
