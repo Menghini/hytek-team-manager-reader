@@ -7,8 +7,8 @@ function UploadBox(props) {
     const { loading } = props;
 
     return (
-        <div class="box">
-            <div class={"UploadContainer" + (loading ? "" : " done")}>
+        <div className="box">
+            <div className={"UploadContainer" + (loading ? "" : " done")}>
                 {loading ? (
                     <LoopIcon fontSize="large" />
                 ) : (
