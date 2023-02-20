@@ -12,18 +12,10 @@ function App() {
     palette: {
       mode: 'dark',
       primary: {
-        main: '#90caf9',
+        main: '#d100ff',
       },
       secondary: {
-        main: '#f48fb1',
-      },
-      text: {
-        primary: '#fff',
-        secondary: '#bbb',
-      },
-      background: {
-        default: '#212121',
-        paper: '#424242',
+        main: '#f50057',
       },
     },
   });

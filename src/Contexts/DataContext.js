@@ -62,7 +62,6 @@ function DataContextProvider({ children }) {
         event.preventDefault();
         const file = event.dataTransfer.files[0];
         setFileName(file.name);
-
         const reader = new FileReader();
         reader.onload = (event) => {
             setLoading(false);

@@ -88,9 +88,9 @@ function MeetResults() {
                     {/*if the first tab is selected, then the meet results will show up here*/}
                     <DialogContent>
                         <DialogContentText>Table showing athletes, distances, scores, and results for the selected meet.</DialogContentText>
-                        <div style={{ height: 500, width: '100%' }}>
+                        <Paper sx={{ height: 500, width: '100%' }}>
                             <DataGrid rows={selectedMeetRows} columns={resultsTableColumns} getRowId={(row) => row.id} />
-                        </div>
+                        </Paper>
                     </DialogContent>
                 </TabPanel>
                 <TabPanel value="2">
