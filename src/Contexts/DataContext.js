@@ -323,9 +323,12 @@ function DataContextProvider({ children }) {
             milliseconds: milliseconds,
         };
     }
-    const mapRowToResult = (row, index, athletesTable) => {
+    const mapRowToResult = (row, index, athletesTable, showImprov) => {
         const { mark, convert, rawMetric, isFieldEvent } = convertRawScoreToMark(row.SCORE, row.MARK_YD);
-        let improve = findBestImprov(row);
+        let improve = null;
+        if (showImprov) {
+            improve = findBestImprov(row);
+        }
         let improveConvert;
         if (improve != null && improve.diff != null && improve.diff.deltaTime != null) {
             improve = improve.diff.deltaTime.mark;
@@ -431,7 +434,7 @@ function DataContextProvider({ children }) {
 
         const selectedMeetRows = resultsTable.getData()
             .filter(row => row.MEET === selectedMeetId)
-            .map((row, index) => mapRowToResult(row, index, athletesTable));
+            .map((row, index) => mapRowToResult(row, index, athletesTable, true));
         setSelectedMeetRows(selectedMeetRows);
         setOpen(true);
         return selectedMeetRows;
@@ -449,22 +452,19 @@ function DataContextProvider({ children }) {
         return rows.sort((a, b) => b.RAWMETRIC - a.RAWMETRIC).slice(0, 10);
     };
     const gatherTop10Results = async () => {
-        if (top10ResultsByEvent.length != 0) {
-            //Only calculate this once
-            return
+        if (top10ResultsByEvent.length !== 0) {
+            // Only calculate this once
+            return;
         }
+        console.log(resultsTable.getData());
+
         const allRows = resultsTable.getData().map((row, index) => mapRowToResult(row, index, athletesTable));
-        console.log("1");
         const eventTypes = [...new Set(allRows.map(row => row.EVENTTYPE))];
-        console.log("2");
         const top10sByEventName = {};
-        console.log("3");
         eventTypes.forEach(eventType => {
-            console.log("4");
             const eventRows = allRows.filter(row => row.EVENTTYPE === eventType);
             const groupedRows = groupRowsByEventName(eventRows);
             for (const eventName in groupedRows) {
-                console.log("Calculating for " + eventName + " from " + groupedRows);
                 top10sByEventName[eventName] = top10sByEventName[eventName] || [];
                 top10sByEventName[eventName].push(...sortAndSelectTop10Rows(groupedRows[eventName]));
             }
