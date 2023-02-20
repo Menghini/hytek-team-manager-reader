@@ -15,6 +15,7 @@ function DataContextProvider({ children }) {
     const [loading, setLoading] = useState(false);
     const [fileName, setFileName] = useState('');
     const [selectedMeetRows, setSelectedMeetRows] = useState([]);
+    const [top10ResultsByEvent, setTop10ResultsByEvent] = useState([]);
     const [open, setOpen] = useState(false);
     const [meetTable, setMeetTable] = useState([]);
     const [resultsTable, setResultsTable] = useState([]);
@@ -448,24 +449,24 @@ function DataContextProvider({ children }) {
     };
     const gatherTop10Results = () => {
         const allMeetRows = meetTable.map(meet => {
-          const selectedMeetRows = resultsTable.getData()
-            .filter(row => row.MEET === meet.MEET)
-            .map((row, index) => mapRowToResult(row, index, athletesTable));
-          return { meetName: meet.MNAME, rows: selectedMeetRows };
+            const selectedMeetRows = resultsTable.getData()
+                .filter(row => row.MEET === meet.MEET)
+                .map((row, index) => mapRowToResult(row, index, athletesTable));
+            return { meetName: meet.MNAME, rows: selectedMeetRows };
         });
-      
+
         const allRows = allMeetRows.flatMap(({ rows }) => rows);
         const groupedRows = groupRowsByEventName(allRows);
-      
+
         const top10sByEventName = Object.entries(groupedRows).reduce((acc, [eventName, rows]) => {
-          acc[eventName] = sortAndSelectTop10Rows(rows);
-          return acc;
+            acc[eventName] = sortAndSelectTop10Rows(rows);
+            return acc;
         }, {});
-      
-        setSelectedMeetRows(top10sByEventName);
+
+        setTop10ResultsByEvent(top10sByEventName);
         setOpen(true);
-      };
-      
+    };
+
 
 
     const returnPRs = (rows) => {
@@ -506,6 +507,7 @@ function DataContextProvider({ children }) {
         open: open,
         returnPRs: returnPRs,
         gatherTop10Results: gatherTop10Results,
+        top10ResultsByEvent: top10ResultsByEvent,
         //Whatever fields
     }
     const [state, setState] = useState(IDataContext);

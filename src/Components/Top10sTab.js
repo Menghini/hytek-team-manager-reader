@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import '../css/App.css';
 import UploadBox from './UploadBox';
 import {
@@ -43,29 +43,27 @@ function Top10sTab() {
         loading,
         open,
         gatherTop10Results,
+        top10ResultsByEvent,
     } = useContext(DataContext);
+    useEffect(() => {
+        gatherTop10Results();
+    }, [gatherTop10Results]);
     return (
-
         <Paper sx={{ height: '70vh', width: '100%' }}>
             <h1>Top 10 Marks Per Event</h1>
-            <div className='Top10s'>
-                <h1>EventName</h1>
-                <ul>
-                    <li>SCORE LAST, FIRST</li>
-                    <li>SCORE LAST, FIRST</li>
-                    <li>SCORE LAST, FIRST</li>
-                    <li>SCORE LAST, FIRST</li>
-                    <li>SCORE LAST, FIRST</li>
-                    <li>SCORE LAST, FIRST</li>
-                    <li>SCORE LAST, FIRST</li>
-                    <li>SCORE LAST, FIRST</li>
-                    <li>SCORE LAST, FIRST</li>
-                    <li>SCORE LAST, FIRST</li>
-                    <li>SCORE LAST, FIRST</li>
-                </ul>
-            </div>
+            {Object.entries(top10ResultsByEvent).map(([eventName, rows]) => (
+                <div className='Top10s' key={eventName}>
+                    <h2>{eventName}</h2>
+                    <ul>
+                        {rows.map((row) => (
+                            <li key={row.id}>
+                                {`${row.SCORE} ${row.LAST}, ${row.FIRST}`}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            ))}
         </Paper>
-
     );
 }
 
