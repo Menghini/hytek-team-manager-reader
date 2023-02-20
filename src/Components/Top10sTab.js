@@ -55,9 +55,9 @@ function Top10sTab() {
                 <div className='Top10s' key={eventName}>
                     <h2>{eventName}</h2>
                     <ul>
-                        {rows.map((row) => (
+                        {rows.map((row, index) => (
                             <li key={row.id}>
-                                {`${row.SCORE} ${row.LAST}, ${row.FIRST}`}
+                                {`${index % 10 + 1}. ${row.SCORE} ${row.LAST}, ${row.FIRST}`}
                             </li>
                         ))}
                     </ul>

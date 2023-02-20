@@ -413,10 +413,11 @@ function DataContextProvider({ children }) {
             //ATHLETE: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Last + ', ' + athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.First,
             FIRST: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Pref || athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.First,
             LAST: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Last,
+            GENDER: athletesTable && (athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Sex === 'M' ? 'Mens' : athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Sex === 'F' ? 'Womens' : ""),
             GRADYEAR: athletesTable && athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Comp_No,
             //GradYear will be stored as the Comp_No column.
             ATHLETEID: row.ATHLETE,
-            EVENTNAME: eventName,
+            EVENTNAME: athletesTable && (athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Sex === 'M' ? 'Mens' : athletesTable.find(athlete => athlete.Athlete === row.ATHLETE)?.Sex === 'F' ? 'Womens' : "") + " " + eventName,
             SCORE: mark,
             CONVERT: convert,
             RESULT: row.RESULT,
@@ -445,20 +446,36 @@ function DataContextProvider({ children }) {
         return rows.reduce((acc, row) => {
             // Group rows by EVENTNAME
             acc[row.EVENTNAME] = acc[row.EVENTNAME] || [];
-            acc[row.EVENTNAME].push(row);
+
+            // Check whether the athlete is already in the list for the eventName
+            const existingRowForAthlete = acc[row.EVENTNAME].find(r => r.ATHLETEID === row.ATHLETEID);
+
+            if (existingRowForAthlete) {
+                // If the athlete is already in the list, update their SORTID if the current row has a lower value
+                if (row.SORTID < existingRowForAthlete.SORTID) {
+                    acc[row.EVENTNAME] = acc[row.EVENTNAME].map(r => r.ATHLETEID === row.ATHLETEID ? row : r);
+                }
+            } else {
+                // If the athlete is not yet in the list, add the current row
+                acc[row.EVENTNAME].push(row);
+            }
+
             return acc;
         }, {});
     };
+
+
     const sortAndSelectTop10Rows = (rows) => {
-        // Sort rows by rawMetric and select the top 10 results
-        return rows.sort((a, b) => b.RAWMETRIC - a.RAWMETRIC).slice(0, 10);
+        // Sort rows by SORTID and select the top 10 results
+        return rows.sort((a, b) => a.SORTID - b.SORTID).slice(0, 10);
     };
     const gatherTop10Results = async () => {
+        //TODO: Keep more than 10, if there is a tie.
         if (top10ResultsByEvent.length !== 0) {
             // Only calculate this once
             return;
         }
-        const allRows = resultsTable.getData().map((row, index) => mapRowToResult(row, index, athletesTable));
+        const allRows = resultsTable.getData().map((row, index) => mapRowToResult(row, index, athletesTable)); //Processes all rows into usable info
         const eventTypes = [...new Set(allRows.map(row => row.EVENTTYPE))];
         const top10sByEventName = {};
         eventTypes.forEach(eventType => {
