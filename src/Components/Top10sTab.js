@@ -42,7 +42,7 @@ function Top10sTab() {
         athletesTableColumns,
         loading,
         open,
-        openAllResultsTable,
+        gatherTop10Results,
     } = useContext(DataContext);
     return (
 

@@ -446,24 +446,26 @@ function DataContextProvider({ children }) {
         // Sort rows by rawMetric and select the top 10 results
         return rows.sort((a, b) => b.RAWMETRIC - a.RAWMETRIC).slice(0, 10);
     };
-    const openAllResultsTable = () => {
-        const top10RowsByEvent = meetTable.reduce((acc, meet) => {
-            const selectedMeetId = meet.MEET;
-            const selectedMeetRows = resultsTable.getData()
-                .filter(row => row.MEET === selectedMeetId)
-                .map((row, index) => mapRowToResult(row, index, athletesTable));
-
-            const groupedRows = groupRowsByEventName(selectedMeetRows);
-            for (const eventName in groupedRows) {
-                acc[eventName] = acc[eventName] || {};
-                acc[eventName][meet.MNAME] = sortAndSelectTop10Rows(groupedRows[eventName]);
-            }
-            return acc;
+    const gatherTop10Results = () => {
+        const allMeetRows = meetTable.map(meet => {
+          const selectedMeetRows = resultsTable.getData()
+            .filter(row => row.MEET === meet.MEET)
+            .map((row, index) => mapRowToResult(row, index, athletesTable));
+          return { meetName: meet.MNAME, rows: selectedMeetRows };
+        });
+      
+        const allRows = allMeetRows.flatMap(({ rows }) => rows);
+        const groupedRows = groupRowsByEventName(allRows);
+      
+        const top10sByEventName = Object.entries(groupedRows).reduce((acc, [eventName, rows]) => {
+          acc[eventName] = sortAndSelectTop10Rows(rows);
+          return acc;
         }, {});
-
-        setSelectedMeetRows(top10RowsByEvent);
+      
+        setSelectedMeetRows(top10sByEventName);
         setOpen(true);
-    };
+      };
+      
 
 
     const returnPRs = (rows) => {
@@ -503,7 +505,7 @@ function DataContextProvider({ children }) {
         loading: loading,
         open: open,
         returnPRs: returnPRs,
-        openAllResultsTable: openAllResultsTable,
+        gatherTop10Results: gatherTop10Results,
         //Whatever fields
     }
     const [state, setState] = useState(IDataContext);
