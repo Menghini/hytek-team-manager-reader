@@ -47,7 +47,7 @@ function Top10sTab() {
     } = useContext(DataContext);
     useEffect(() => {
         gatherTop10Results();
-    }, [gatherTop10Results]);
+    }, []);
     return (
         <Paper sx={{ height: '70vh', width: '100%' }}>
             <h1>Top 10 Marks Per Event</h1>
