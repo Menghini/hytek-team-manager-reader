@@ -87,6 +87,7 @@ function DataContextProvider({ children }) {
                     setSelectedMeetRows([]);
                     setResultsTable(resultTable);
                     setAthletesTable(athleteTable.getData());
+                    setTop10ResultsByEvent([]);
                 } else {
                     setMeetTable(["This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager"]);
                 }
@@ -448,7 +449,7 @@ function DataContextProvider({ children }) {
         return rows.sort((a, b) => b.RAWMETRIC - a.RAWMETRIC).slice(0, 10);
     };
     const gatherTop10Results = async () => {
-        if(top10ResultsByEvent.length != 0){
+        if (top10ResultsByEvent.length != 0) {
             //Only calculate this once
             return
         }
@@ -460,22 +461,22 @@ function DataContextProvider({ children }) {
         console.log("3");
         eventTypes.forEach(eventType => {
             console.log("4");
-          const eventRows = allRows.filter(row => row.EVENTTYPE === eventType);
-          const groupedRows = groupRowsByEventName(eventRows);
-          for (const eventName in groupedRows) {
-            console.log("Calculating for "+eventName+" from "+groupedRows);
-            top10sByEventName[eventName] = top10sByEventName[eventName] || [];
-            top10sByEventName[eventName].push(...sortAndSelectTop10Rows(groupedRows[eventName]));
-          }
+            const eventRows = allRows.filter(row => row.EVENTTYPE === eventType);
+            const groupedRows = groupRowsByEventName(eventRows);
+            for (const eventName in groupedRows) {
+                console.log("Calculating for " + eventName + " from " + groupedRows);
+                top10sByEventName[eventName] = top10sByEventName[eventName] || [];
+                top10sByEventName[eventName].push(...sortAndSelectTop10Rows(groupedRows[eventName]));
+            }
         });
-        
+
         for (const eventName in top10sByEventName) {
-          top10sByEventName[eventName] = top10sByEventName[eventName].slice(0, 10);
+            top10sByEventName[eventName] = top10sByEventName[eventName].slice(0, 10);
         }
-      
+
         setTop10ResultsByEvent(top10sByEventName);
         setOpen(true);
-      };
+    };
 
 
 

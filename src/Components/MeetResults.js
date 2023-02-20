@@ -98,9 +98,9 @@ function MeetResults() {
                     <Paper sx={{ height: 564, width: '100%' }}>
                         <DialogContent>
                             <ul>
-                                {selectedMeetRows.filter(row => row.IMPROVE.charAt(0) === '-').length > 0 ? (
+                                {selectedMeetRows.filter(row => row.IMPROVE && row.IMPROVE.charAt(0) === '-').length > 0 ? (
                                     selectedMeetRows.map((row) => (
-                                        (row.IMPROVE.charAt(0) === '-') &&
+                                        (row.IMPROVE && row.IMPROVE.charAt(0) === '-') &&
                                         <li key={row.id}>
                                             {`${row.FIRST} ${row.LAST} '${row.GRADYEAR} PRed in the ${row.EVENTNAME} with a PR of ${row.SCORE}`}
                                         </li>
