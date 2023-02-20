@@ -426,6 +426,7 @@ function DataContextProvider({ children }) {
                     IMPROVEIMPERIAL: improveConvert,
                     RAWMETRIC: rawMetric,
                     ISFIELDEVENT: isFieldEvent,
+                    SORTID: row.SORT_ID,
                 }
             });
         setSelectedMeetRows(selectedMeetRows);
