@@ -24,6 +24,7 @@ import { DataContext } from '../Contexts/DataContext';
 import MeetsTab from './MeetsTab';
 import MeetResults from './MeetResults';
 import AthletesTab from './AthletesTab';
+import Top10sTab from './Top10sTab';
 
 
 
@@ -67,6 +68,7 @@ function MainTabs() {
                                 <TabList onChange={handleMainTabsChange} aria-label="lab API tabs example">
                                     <Tab label="Meets" value="1" />
                                     <Tab label="Athletes" value="2" />
+                                    <Tab label="Top 10s" value="3" />
                                 </TabList>
                             </Box>
                             <TabPanel value="1">
@@ -77,6 +79,10 @@ function MainTabs() {
                             <TabPanel value="2">
                                 {/*if the first tab is selected, then athlete info will show up here*/}
                                 <AthletesTab />
+                            </TabPanel>
+                            <TabPanel value="3">
+                                {/*if the first tab is selected, then athlete info will show up here*/}
+                                <Top10sTab />
                             </TabPanel>
                         </TabContext>
                     </Box>

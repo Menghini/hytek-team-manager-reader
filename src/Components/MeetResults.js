@@ -95,20 +95,22 @@ function MeetResults() {
                 </TabPanel>
                 <TabPanel value="2">
                     {/*if the first tab is selected, then PR info will show up here*/}
-                    <DialogContent>
-                        <ul>
-                            {selectedMeetRows.filter(row => row.IMPROVE.charAt(0) === '-').length > 0 ? (
-                                selectedMeetRows.map((row) => (
-                                    (row.IMPROVE.charAt(0) === '-') &&
-                                    <li key={row.id}>
-                                        {`${row.FIRST} ${row.LAST} '${row.GRADYEAR} PRed in the ${row.EVENTNAME} with a PR of ${row.SCORE}`}
-                                    </li>
-                                ))
-                            ) : (
-                                <Typography sx={{ marginBottom: "8px" }}>No one PRed during this meet</Typography>
-                            )}
-                        </ul>
-                    </DialogContent>
+                    <Paper sx={{ height: 564, width: '100%' }}>
+                        <DialogContent>
+                            <ul>
+                                {selectedMeetRows.filter(row => row.IMPROVE.charAt(0) === '-').length > 0 ? (
+                                    selectedMeetRows.map((row) => (
+                                        (row.IMPROVE.charAt(0) === '-') &&
+                                        <li key={row.id}>
+                                            {`${row.FIRST} ${row.LAST} '${row.GRADYEAR} PRed in the ${row.EVENTNAME} with a PR of ${row.SCORE}`}
+                                        </li>
+                                    ))
+                                ) : (
+                                    <Typography sx={{ marginBottom: "8px" }}>No one PRed during this meet</Typography>
+                                )}
+                            </ul>
+                        </DialogContent>
+                    </Paper>
                 </TabPanel>
             </TabContext>
 
