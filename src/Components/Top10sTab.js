@@ -42,11 +42,30 @@ function Top10sTab() {
         athletesTableColumns,
         loading,
         open,
+        openAllResultsTable,
     } = useContext(DataContext);
     return (
+
         <Paper sx={{ height: '70vh', width: '100%' }}>
-            test
+            <h1>Top 10 Marks Per Event</h1>
+            <div className='Top10s'>
+                <h1>EventName</h1>
+                <ul>
+                    <li>SCORE LAST, FIRST</li>
+                    <li>SCORE LAST, FIRST</li>
+                    <li>SCORE LAST, FIRST</li>
+                    <li>SCORE LAST, FIRST</li>
+                    <li>SCORE LAST, FIRST</li>
+                    <li>SCORE LAST, FIRST</li>
+                    <li>SCORE LAST, FIRST</li>
+                    <li>SCORE LAST, FIRST</li>
+                    <li>SCORE LAST, FIRST</li>
+                    <li>SCORE LAST, FIRST</li>
+                    <li>SCORE LAST, FIRST</li>
+                </ul>
+            </div>
         </Paper>
+
     );
 }
 

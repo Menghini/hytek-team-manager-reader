@@ -434,6 +434,37 @@ function DataContextProvider({ children }) {
         setOpen(true);
         return selectedMeetRows;
     };
+    const groupRowsByEventName = (rows) => {
+        return rows.reduce((acc, row) => {
+            // Group rows by EVENTNAME
+            acc[row.EVENTNAME] = acc[row.EVENTNAME] || [];
+            acc[row.EVENTNAME].push(row);
+            return acc;
+        }, {});
+    };
+    const sortAndSelectTop10Rows = (rows) => {
+        // Sort rows by rawMetric and select the top 10 results
+        return rows.sort((a, b) => b.RAWMETRIC - a.RAWMETRIC).slice(0, 10);
+    };
+    const openAllResultsTable = () => {
+        const top10RowsByEvent = meetTable.reduce((acc, meet) => {
+            const selectedMeetId = meet.MEET;
+            const selectedMeetRows = resultsTable.getData()
+                .filter(row => row.MEET === selectedMeetId)
+                .map((row, index) => mapRowToResult(row, index, athletesTable));
+
+            const groupedRows = groupRowsByEventName(selectedMeetRows);
+            for (const eventName in groupedRows) {
+                acc[eventName] = acc[eventName] || {};
+                acc[eventName][meet.MNAME] = sortAndSelectTop10Rows(groupedRows[eventName]);
+            }
+            return acc;
+        }, {});
+
+        setSelectedMeetRows(top10RowsByEvent);
+        setOpen(true);
+    };
+
 
     const returnPRs = (rows) => {
         console.log(rows);
@@ -472,6 +503,7 @@ function DataContextProvider({ children }) {
         loading: loading,
         open: open,
         returnPRs: returnPRs,
+        openAllResultsTable: openAllResultsTable,
         //Whatever fields
     }
     const [state, setState] = useState(IDataContext);
