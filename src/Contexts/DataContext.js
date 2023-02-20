@@ -327,6 +327,8 @@ function DataContextProvider({ children }) {
         const { mark, convert, rawMetric, isFieldEvent } = convertRawScoreToMark(row.SCORE, row.MARK_YD);
         let improve = null;
         if (showImprov) {
+            //We only want to show improve if we are displaying this data for the meets table.
+            //Otherwise, it will be too slow and isn't needed.
             improve = findBestImprov(row);
         }
         let improveConvert;
@@ -456,8 +458,6 @@ function DataContextProvider({ children }) {
             // Only calculate this once
             return;
         }
-        console.log(resultsTable.getData());
-
         const allRows = resultsTable.getData().map((row, index) => mapRowToResult(row, index, athletesTable));
         const eventTypes = [...new Set(allRows.map(row => row.EVENTTYPE))];
         const top10sByEventName = {};

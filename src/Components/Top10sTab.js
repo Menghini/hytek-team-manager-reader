@@ -49,7 +49,7 @@ function Top10sTab() {
         gatherTop10Results();
     }, []);
     return (
-        <Paper sx={{ height: '70vh', width: '100%' }}>
+        <Paper sx={{ height: '70vh', width: '100%', overflow: 'auto', padding: '25px' }}>
             <h1>Top 10 Marks Per Event</h1>
             {Object.entries(top10ResultsByEvent).map(([eventName, rows]) => (
                 <div className='Top10s' key={eventName}>
