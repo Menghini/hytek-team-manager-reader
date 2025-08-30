@@ -110,12 +110,16 @@ function MeetResults() {
             <DialogContent>
               <ul>
                 {selectedMeetRows.filter(
-                  (row) => row.IMPROVE && row.IMPROVE.charAt(0) === "-"
+                  (row) =>
+                    (row.IMPROVE && row.IMPROVE.charAt(0) === "-") ||
+                    !row.IMPROVE ||
+                    row.IMPROVE.trim() === ""
                 ).length > 0 ? (
                   selectedMeetRows.map(
                     (row) =>
-                      row.IMPROVE &&
-                      row.IMPROVE.charAt(0) === "-" && (
+                      ((row.IMPROVE && row.IMPROVE.charAt(0) === "-") ||
+                        !row.IMPROVE ||
+                        row.IMPROVE.trim() === "") && (
                         <li key={row.id}>
                           {`${row.FIRST} ${row.LAST} '${
                             row.GRADYEAR
