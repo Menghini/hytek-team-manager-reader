@@ -63,7 +63,7 @@ function MeetResults() {
     return [0, 1, 2].map((value) =>
       React.cloneElement(element, {
         key: value,
-      })
+      }),
     );
   }
 
@@ -111,12 +111,14 @@ function MeetResults() {
               <ul>
                 {selectedMeetRows.filter(
                   (row) =>
-                    (row.IMPROVE && row.IMPROVE.charAt(0) === "-") ||
-                    !row.IMPROVE ||
-                    row.IMPROVE.trim() === ""
+                    row.EVENTTYPE === "Individual" &&
+                    ((row.IMPROVE && row.IMPROVE.charAt(0) === "-") ||
+                      !row.IMPROVE ||
+                      row.IMPROVE.trim() === ""),
                 ).length > 0 ? (
                   selectedMeetRows.map(
                     (row) =>
+                      row.EVENTTYPE === "Individual" &&
                       ((row.IMPROVE && row.IMPROVE.charAt(0) === "-") ||
                         !row.IMPROVE ||
                         row.IMPROVE.trim() === "") && (
@@ -125,10 +127,14 @@ function MeetResults() {
                             row.GRADYEAR
                           } PRed in the ${row.EVENTNAME.replace(
                             /^(Mens |Womens )/i,
-                            ""
-                          )} with a PR of ${row.SCORE}`}
+                            "",
+                          )} with a PR of ${row.SCORE}${
+                            row.IMPROVE && row.IMPROVE.charAt(0) === "-"
+                              ? ` by ${row.IMPROVE.substring(1)}`
+                              : ""
+                          }`}
                         </li>
-                      )
+                      ),
                   )
                 ) : (
                   <Typography sx={{ marginBottom: "8px" }}>
