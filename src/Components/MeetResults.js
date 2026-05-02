@@ -19,6 +19,8 @@ import {
   ListItem,
   ListItemText,
   Typography,
+  FormControlLabel,
+  Switch,
 } from "@mui/material/";
 import { DataGrid } from "@mui/x-data-grid";
 import { DataContext } from "../Contexts/DataContext";
@@ -27,6 +29,7 @@ import { LocalPrintshopSharp } from "@mui/icons-material";
 
 function MeetResults() {
   const [meetResultsTabValue, setMeetResultsTabValue] = React.useState(1);
+  const [hidePRsFromSBs, setHidePRsFromSBs] = React.useState(true);
 
   const handleMeetResultsTabsChange = (event, newValue) => {
     //This code is ran once to set the tabs to the first tab.
@@ -150,6 +153,15 @@ function MeetResults() {
           {/*Season Bests tab*/}
           <Paper sx={{ height: 564, width: "100%" }}>
             <DialogContent>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={hidePRsFromSBs}
+                    onChange={(e) => setHidePRsFromSBs(e.target.checked)}
+                  />
+                }
+                label="Hide PRs"
+              />
               <ul>
                 {selectedMeetRows.filter(
                   (row) =>
@@ -157,7 +169,13 @@ function MeetResults() {
                     ((row.IMPROVESEASON &&
                       row.IMPROVESEASON.charAt(0) === "-") ||
                       !row.IMPROVESEASON ||
-                      row.IMPROVESEASON.trim() === ""),
+                      row.IMPROVESEASON.trim() === "") &&
+                    !(
+                      hidePRsFromSBs &&
+                      ((row.IMPROVE && row.IMPROVE.charAt(0) === "-") ||
+                        !row.IMPROVE ||
+                        row.IMPROVE.trim() === "")
+                    ),
                 ).length > 0 ? (
                   selectedMeetRows.map(
                     (row) =>
@@ -165,7 +183,13 @@ function MeetResults() {
                       ((row.IMPROVESEASON &&
                         row.IMPROVESEASON.charAt(0) === "-") ||
                         !row.IMPROVESEASON ||
-                        row.IMPROVESEASON.trim() === "") && (
+                        row.IMPROVESEASON.trim() === "") &&
+                      !(
+                        hidePRsFromSBs &&
+                        ((row.IMPROVE && row.IMPROVE.charAt(0) === "-") ||
+                          !row.IMPROVE ||
+                          row.IMPROVE.trim() === "")
+                      ) && (
                         <li key={row.id}>
                           {`${row.FIRST} ${row.LAST} '${
                             row.GRADYEAR
