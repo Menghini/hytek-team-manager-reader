@@ -86,6 +86,7 @@ function MeetResults() {
           >
             <Tab label="Meet Results" value="1" />
             <Tab label="PRs" value="2" />
+            <Tab label="SBs" value="3" />
           </TabList>
         </Box>
         <TabPanel value="1">
@@ -139,6 +140,50 @@ function MeetResults() {
                 ) : (
                   <Typography sx={{ marginBottom: "8px" }}>
                     No one PRed during this meet
+                  </Typography>
+                )}
+              </ul>
+            </DialogContent>
+          </Paper>
+        </TabPanel>
+        <TabPanel value="3">
+          {/*Season Bests tab*/}
+          <Paper sx={{ height: 564, width: "100%" }}>
+            <DialogContent>
+              <ul>
+                {selectedMeetRows.filter(
+                  (row) =>
+                    row.EVENTTYPE === "Individual" &&
+                    ((row.IMPROVESEASON &&
+                      row.IMPROVESEASON.charAt(0) === "-") ||
+                      !row.IMPROVESEASON ||
+                      row.IMPROVESEASON.trim() === ""),
+                ).length > 0 ? (
+                  selectedMeetRows.map(
+                    (row) =>
+                      row.EVENTTYPE === "Individual" &&
+                      ((row.IMPROVESEASON &&
+                        row.IMPROVESEASON.charAt(0) === "-") ||
+                        !row.IMPROVESEASON ||
+                        row.IMPROVESEASON.trim() === "") && (
+                        <li key={row.id}>
+                          {`${row.FIRST} ${row.LAST} '${
+                            row.GRADYEAR
+                          } got a SB in the ${row.EVENTNAME.replace(
+                            /^(Mens |Womens )/i,
+                            "",
+                          )} with a SB of ${row.SCORE}${
+                            row.IMPROVESEASON &&
+                            row.IMPROVESEASON.charAt(0) === "-"
+                              ? ` by ${row.IMPROVESEASON.substring(1)}`
+                              : ""
+                          }`}
+                        </li>
+                      ),
+                  )
+                ) : (
+                  <Typography sx={{ marginBottom: "8px" }}>
+                    No one got a season best during this meet
                   </Typography>
                 )}
               </ul>
