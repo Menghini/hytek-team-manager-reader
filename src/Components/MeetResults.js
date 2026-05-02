@@ -151,7 +151,7 @@ function MeetResults() {
         </TabPanel>
         <TabPanel value="3">
           {/*Season Bests tab*/}
-          <Paper sx={{ height: 564, width: "100%" }}>
+          <Paper sx={{ height: 564, width: "100%", overflow: "auto" }}>
             <DialogContent>
               <FormControlLabel
                 control={
@@ -163,33 +163,46 @@ function MeetResults() {
                 label="Hide PRs"
               />
               <ul>
-                {selectedMeetRows.filter(
-                  (row) =>
-                    row.EVENTTYPE === "Individual" &&
-                    ((row.IMPROVESEASON &&
+                {(() => {
+                  const isSB = (row) =>
+                    (row.IMPROVESEASON &&
                       row.IMPROVESEASON.charAt(0) === "-") ||
-                      !row.IMPROVESEASON ||
-                      row.IMPROVESEASON.trim() === "") &&
-                    !(
-                      hidePRsFromSBs &&
-                      ((row.IMPROVE && row.IMPROVE.charAt(0) === "-") ||
-                        !row.IMPROVE ||
-                        row.IMPROVE.trim() === "")
-                    ),
-                ).length > 0 ? (
-                  selectedMeetRows.map(
+                    !row.IMPROVESEASON ||
+                    row.IMPROVESEASON.trim() === "";
+
+                  const individualSBs = selectedMeetRows.filter(
                     (row) =>
                       row.EVENTTYPE === "Individual" &&
-                      ((row.IMPROVESEASON &&
-                        row.IMPROVESEASON.charAt(0) === "-") ||
-                        !row.IMPROVESEASON ||
-                        row.IMPROVESEASON.trim() === "") &&
+                      isSB(row) &&
                       !(
                         hidePRsFromSBs &&
                         ((row.IMPROVE && row.IMPROVE.charAt(0) === "-") ||
                           !row.IMPROVE ||
                           row.IMPROVE.trim() === "")
-                      ) && (
+                      ),
+                  );
+
+                  const relayGroups = {};
+                  selectedMeetRows
+                    .filter((row) => row.EVENTTYPE === "Relay" && isSB(row))
+                    .forEach((row) => {
+                      if (!relayGroups[row.RESULT])
+                        relayGroups[row.RESULT] = [];
+                      relayGroups[row.RESULT].push(row);
+                    });
+                  const relayTeams = Object.values(relayGroups);
+
+                  if (individualSBs.length === 0 && relayTeams.length === 0) {
+                    return (
+                      <Typography sx={{ marginBottom: "8px" }}>
+                        No one got a season best during this meet
+                      </Typography>
+                    );
+                  }
+
+                  return (
+                    <>
+                      {individualSBs.map((row) => (
                         <li key={row.id}>
                           {`${row.FIRST} ${row.LAST} '${
                             row.GRADYEAR
@@ -203,13 +216,36 @@ function MeetResults() {
                               : ""
                           }`}
                         </li>
-                      ),
-                  )
-                ) : (
-                  <Typography sx={{ marginBottom: "8px" }}>
-                    No one got a season best during this meet
-                  </Typography>
-                )}
+                      ))}
+                      {relayTeams.map((team) => {
+                        const rep = team[0];
+                        const athletes = rep.RELAYATHLETES || [];
+                        const names = athletes.map(
+                          (a) => `${a.FIRST} ${a.LAST} '${a.GRADYEAR}`,
+                        );
+                        const nameStr =
+                          names.length > 1
+                            ? names.slice(0, -1).join(", ") +
+                              ", and " +
+                              names[names.length - 1]
+                            : names[0] || "";
+                        return (
+                          <li key={`relay-${rep.RESULT}`}>
+                            {`${nameStr} ran a SB in the ${rep.EVENTNAME.replace(
+                              /^(Mens |Womens )/i,
+                              "",
+                            )} with a SB of ${rep.SCORE}${
+                              rep.IMPROVESEASON &&
+                              rep.IMPROVESEASON.charAt(0) === "-"
+                                ? ` by ${rep.IMPROVESEASON.substring(1)}`
+                                : ""
+                            }`}
+                          </li>
+                        );
+                      })}
+                    </>
+                  );
+                })()}
               </ul>
             </DialogContent>
           </Paper>

@@ -19,6 +19,7 @@ function DataContextProvider({ children }) {
   const [meetTable, setMeetTable] = useState([]);
   const [resultsTable, setResultsTable] = useState([]);
   const [athletesTable, setAthletesTable] = useState([]);
+  const [relayTable, setRelayTable] = useState([]);
   const [meetInfo, setMeetInfo] = useState(null);
 
   const requiredTables = [
@@ -78,10 +79,12 @@ function DataContextProvider({ children }) {
           const athleteTable = mdbReader.getTable("Athlete");
           const meetTable = mdbReader.getTable("MEET");
           const resultTable = mdbReader.getTable("RESULT");
+          const relayTableData = mdbReader.getTable("RELAY");
           setMeetTable(meetTable.getData());
           setSelectedMeetRows([]);
           setResultsTable(resultTable);
           setAthletesTable(athleteTable.getData());
+          setRelayTable(relayTableData.getData());
           setTop10ResultsByEvent([]);
         } else {
           setMeetTable([
@@ -92,6 +95,7 @@ function DataContextProvider({ children }) {
         setMeetTable([]);
         setAthletesTable([]);
         setResultsTable([]);
+        setRelayTable([]);
         setFileName(
           "This is not a database file, nor does it appear to be from HYTEK Track and Field Manager",
         );
@@ -365,7 +369,13 @@ function DataContextProvider({ children }) {
       milliseconds: milliseconds,
     };
   };
-  const mapRowToResult = (row, index, athletesTable, showImprov) => {
+  const mapRowToResult = (
+    row,
+    index,
+    athletesTable,
+    showImprov,
+    relayTable = [],
+  ) => {
     const { mark, convert, rawMetric, isFieldEvent } = convertRawScoreToMark(
       row.SCORE,
       row.MARK_YD,
@@ -460,6 +470,57 @@ function DataContextProvider({ children }) {
         eventName = "?UNKOWN?";
         break;
     }
+    let relayAthletes = [];
+    let relayGenderStr = "";
+    if (row.I_R === "R") {
+      const relayEntry =
+        relayTable && relayTable.find((r) => r.RELAY === row.ATHLETE);
+      if (!relayEntry) {
+        console.log(
+          "[Relay debug] No match found. row.ATHLETE =",
+          row.ATHLETE,
+          "| row.RESULT =",
+          row.RESULT,
+          "| Sample RELAY table keys:",
+          relayTable && relayTable.length > 0
+            ? Object.keys(relayTable[0])
+            : "empty",
+          "| First few RELAY rows:",
+          relayTable && relayTable.slice(0, 3),
+        );
+      }
+      if (relayEntry) {
+        const athIds = [
+          relayEntry["ATH(1)"],
+          relayEntry["ATH(2)"],
+          relayEntry["ATH(3)"],
+          relayEntry["ATH(4)"],
+        ].filter((id) => id != null && id !== 0 && id !== "");
+        relayAthletes = athIds
+          .map((athId) => {
+            const ath =
+              athletesTable && athletesTable.find((a) => a.Athlete === athId);
+            if (!ath) return null;
+            return {
+              FIRST: ath.Pref || ath.First,
+              LAST: ath.Last,
+              GRADYEAR: ath.Comp_No,
+            };
+          })
+          .filter(Boolean);
+        const firstAthId = athIds[0];
+        const firstAth =
+          firstAthId != null &&
+          athletesTable &&
+          athletesTable.find((a) => a.Athlete === firstAthId);
+        relayGenderStr =
+          firstAth && firstAth.Sex === "M"
+            ? "Mens"
+            : firstAth && firstAth.Sex === "F"
+              ? "Womens"
+              : "";
+      }
+    }
     return {
       id: index,
       //Below concatenates the last name and first name with a comma
@@ -490,16 +551,19 @@ function DataContextProvider({ children }) {
       //GradYear will be stored as the Comp_No column.
       ATHLETEID: row.ATHLETE,
       EVENTNAME:
-        athletesTable &&
-        (athletesTable.find((athlete) => athlete.Athlete === row.ATHLETE)
-          ?.Sex === "M"
-          ? "Mens"
-          : athletesTable.find((athlete) => athlete.Athlete === row.ATHLETE)
-                ?.Sex === "F"
-            ? "Womens"
-            : "") +
-          " " +
-          eventName,
+        (row.I_R === "R"
+          ? relayGenderStr
+          : athletesTable &&
+            (athletesTable.find((athlete) => athlete.Athlete === row.ATHLETE)
+              ?.Sex === "M"
+              ? "Mens"
+              : athletesTable.find((athlete) => athlete.Athlete === row.ATHLETE)
+                    ?.Sex === "F"
+                ? "Womens"
+                : "")) +
+        " " +
+        eventName,
+      RELAYATHLETES: relayAthletes,
       SCORE: mark,
       CONVERT: convert,
       RESULT: row.RESULT,
@@ -526,19 +590,50 @@ function DataContextProvider({ children }) {
     const rawRows = resultsTable
       .getData()
       .filter((row) => row.MEET === selectedMeetId);
+    const relaySBCache = {};
     const selectedMeetRows = rawRows.map((row, index) => {
-      const mapped = mapRowToResult(row, index, athletesTable, true);
-      const sbResult = findBestImprovInYear(row, meetYear);
+      const mapped = mapRowToResult(
+        row,
+        index,
+        athletesTable,
+        true,
+        relayTable,
+      );
       let improveSeason = "";
       let improveSeasonImperial = "";
-      if (sbResult.diff !== null && sbResult.diff.deltaTime != null) {
-        improveSeason = sbResult.diff.deltaTime.mark;
-      } else if (
-        sbResult.diff !== null &&
-        sbResult.diff.deltaDistance != null
-      ) {
-        improveSeasonImperial = sbResult.diff.deltaDistance.convert.formatted;
-        improveSeason = sbResult.diff.deltaDistance.mark;
+      if (row.I_R === "I") {
+        const sbResult = findBestImprovInYear(row, meetYear);
+        if (sbResult.diff !== null && sbResult.diff.deltaTime != null) {
+          improveSeason = sbResult.diff.deltaTime.mark;
+        } else if (
+          sbResult.diff !== null &&
+          sbResult.diff.deltaDistance != null
+        ) {
+          improveSeasonImperial = sbResult.diff.deltaDistance.convert.formatted;
+          improveSeason = sbResult.diff.deltaDistance.mark;
+        }
+      } else if (row.I_R === "R") {
+        if (!relaySBCache[row.RESULT]) {
+          const sbResult = findBestRelayImprovInYear(row, meetYear);
+          let rImproveSeason = "";
+          let rImproveSeasonImperial = "";
+          if (sbResult.diff !== null && sbResult.diff.deltaTime != null) {
+            rImproveSeason = sbResult.diff.deltaTime.mark;
+          } else if (
+            sbResult.diff !== null &&
+            sbResult.diff.deltaDistance != null
+          ) {
+            rImproveSeasonImperial =
+              sbResult.diff.deltaDistance.convert.formatted;
+            rImproveSeason = sbResult.diff.deltaDistance.mark;
+          }
+          relaySBCache[row.RESULT] = {
+            improveSeason: rImproveSeason,
+            improveSeasonImperial: rImproveSeasonImperial,
+          };
+        }
+        improveSeason = relaySBCache[row.RESULT].improveSeason;
+        improveSeasonImperial = relaySBCache[row.RESULT].improveSeasonImperial;
       }
       return {
         ...mapped,
@@ -657,6 +752,41 @@ function DataContextProvider({ children }) {
             );
             bestRow = selectedRow;
           }
+        }
+      }
+    });
+    return { diff, bestRow };
+  };
+
+  const findBestRelayImprovInYear = (baseResultRow, year) => {
+    if (!year) return { diff: null, bestRow: null };
+    let diff = null;
+    let bestResult = null;
+    let bestRow = null;
+    const baseMeet =
+      meetTable && meetTable.find((m) => m.MEET === baseResultRow.MEET);
+    resultsTable.getData().forEach((selectedRow) => {
+      const selectedMeet =
+        meetTable && meetTable.find((m) => m.MEET === selectedRow.MEET);
+      const selectedMeetYear =
+        selectedMeet && new Date(selectedMeet.START).getFullYear();
+      if (
+        selectedRow.EVENT === baseResultRow.EVENT &&
+        selectedRow.DISTANCE === baseResultRow.DISTANCE &&
+        selectedRow.I_R === "R" &&
+        baseMeet.START > selectedMeet.START &&
+        selectedMeetYear === year
+      ) {
+        if (!bestResult || selectedRow.SCORE < bestResult) {
+          bestResult = selectedRow.SCORE;
+          diff = compareRawScores(
+            baseResultRow.SCORE,
+            "M",
+            selectedRow.SCORE,
+            "M",
+            false,
+          );
+          bestRow = selectedRow;
         }
       }
     });
