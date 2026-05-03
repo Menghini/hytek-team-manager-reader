@@ -54,7 +54,7 @@ function MainTabs() {
   return (
     <div
       className="MeetTable"
-      style={{ width: "80vw" }}
+      style={{ width: "100%", maxWidth: "100vw", boxSizing: "border-box" }}
       onDrop={handleFileDrop}
       onDragOver={(event) => event.preventDefault()}
     >

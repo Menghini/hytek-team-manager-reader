@@ -55,52 +55,74 @@ function DataContextProvider({ children }) {
     "TMREG",
   ];
 
+  const loadMdbBuffer = (buffer, name) => {
+    try {
+      const mdbReader = new MDBReader(buffer);
+      const tables = mdbReader.getTableNames();
+      let containsAllTables = true;
+      for (let i = 0; i < requiredTables.length; i++) {
+        if (!tables.includes(requiredTables[i])) {
+          containsAllTables = false;
+          break;
+        }
+      }
+      if (containsAllTables) {
+        const athleteTable = mdbReader.getTable("Athlete");
+        const meetTable = mdbReader.getTable("MEET");
+        const resultTable = mdbReader.getTable("RESULT");
+        const relayTableData = mdbReader.getTable("RELAY");
+        setFileName(name);
+        setMeetTable(meetTable.getData());
+        setSelectedMeetRows([]);
+        setResultsTable(resultTable);
+        setAthletesTable(athleteTable.getData());
+        setRelayTable(relayTableData.getData());
+        setTop10ResultsByEvent([]);
+      } else {
+        setFileName(name);
+        setMeetTable([
+          "This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager",
+        ]);
+      }
+    } catch (error) {
+      setMeetTable([]);
+      setAthletesTable([]);
+      setResultsTable([]);
+      setRelayTable([]);
+      setFileName(
+        "This is not a database file, nor does it appear to be from HYTEK Track and Field Manager",
+      );
+    }
+  };
+
+  // Auto-load Database.mdb from the public folder if present
+  useEffect(() => {
+    fetch("/Database.mdb")
+      .then((res) => {
+        if (!res.ok) return;
+        return res.arrayBuffer();
+      })
+      .then((arrayBuffer) => {
+        if (!arrayBuffer) return;
+        setLoading(true);
+        const buffer = Buffer.from(arrayBuffer);
+        loadMdbBuffer(buffer, "Database.mdb");
+        setLoading(false);
+      })
+      .catch(() => {
+        // No default database present — user must drag and drop
+      });
+  }, []);
+
   const handleFileDrop = (event) => {
     setLoading(true);
     event.preventDefault();
     const file = event.dataTransfer.files[0];
-    setFileName(file.name);
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = (e) => {
       setLoading(false);
-      try {
-        const buffer = Buffer.from(event.target.result);
-        const mdbReader = new MDBReader(buffer);
-        let tables = mdbReader.getTableNames();
-
-        let containsAllTables = true;
-        for (let i = 0; i < requiredTables.length; i++) {
-          if (!tables.includes(requiredTables[i])) {
-            containsAllTables = false;
-            break;
-          }
-        }
-
-        if (containsAllTables) {
-          const athleteTable = mdbReader.getTable("Athlete");
-          const meetTable = mdbReader.getTable("MEET");
-          const resultTable = mdbReader.getTable("RESULT");
-          const relayTableData = mdbReader.getTable("RELAY");
-          setMeetTable(meetTable.getData());
-          setSelectedMeetRows([]);
-          setResultsTable(resultTable);
-          setAthletesTable(athleteTable.getData());
-          setRelayTable(relayTableData.getData());
-          setTop10ResultsByEvent([]);
-        } else {
-          setMeetTable([
-            "This is a database file, but it doesn't appear to be from HYTEK Track and Field Manager",
-          ]);
-        }
-      } catch (error) {
-        setMeetTable([]);
-        setAthletesTable([]);
-        setResultsTable([]);
-        setRelayTable([]);
-        setFileName(
-          "This is not a database file, nor does it appear to be from HYTEK Track and Field Manager",
-        );
-      }
+      const buffer = Buffer.from(e.target.result);
+      loadMdbBuffer(buffer, file.name);
     };
     reader.readAsArrayBuffer(file);
   };

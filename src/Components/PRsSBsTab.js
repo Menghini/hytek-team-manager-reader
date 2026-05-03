@@ -111,7 +111,13 @@ function PRsSBsTab() {
 
   return (
     <Paper
-      sx={{ height: "70vh", width: "100%", overflow: "auto", padding: "25px" }}
+      sx={{
+        height: { xs: "calc(100dvh - 120px)", sm: "70vh" },
+        width: "100%",
+        overflow: "auto",
+        padding: { xs: "12px", sm: "25px" },
+        boxSizing: "border-box",
+      }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
         <Typography variant="h5">PRs / Season Bests</Typography>
