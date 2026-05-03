@@ -53,7 +53,11 @@ function PRsSBsTab() {
   const FIELD_EVENT_ORDER = [9, 10, 11, 12, 13, 14, 16, 15, 17, 31];
 
   const getEventSortKey = (rows) => {
-    const rep = rows[0]?.pr || Object.values(rows[0]?.sbs || {}).find(Boolean);
+    const rep =
+      rows[0]?.pr ||
+      Object.values(rows[0]?.sbs || {}).find(Boolean) ||
+      rows[0]?.splitPr ||
+      Object.values(rows[0]?.splitSbs || {}).find(Boolean);
     if (!rep) return [3, 0, 0, 0];
     const ev = rep.RAWEVENT;
     const dist = rep.RAWDISTANCE || 0;
@@ -140,7 +144,11 @@ function PRsSBsTab() {
         sortedEventEntries.map(([eventName, rows]) => {
           const filteredRows = sbOnly
             ? rows.filter((e) => {
-                const rep = e.pr || Object.values(e.sbs || {}).find(Boolean);
+                const rep =
+                  e.pr ||
+                  Object.values(e.sbs || {}).find(Boolean) ||
+                  e.splitPr ||
+                  Object.values(e.splitSbs || {}).find(Boolean);
                 return activeAthleteIds.has(rep?.ATHLETEID);
               })
             : rows;
@@ -171,7 +179,10 @@ function PRsSBsTab() {
                 <tbody>
                   {filteredRows.map((entry, i) => {
                     const rep =
-                      entry.pr || Object.values(entry.sbs || {}).find(Boolean);
+                      entry.pr ||
+                      Object.values(entry.sbs || {}).find(Boolean) ||
+                      entry.splitPr ||
+                      Object.values(entry.splitSbs || {}).find(Boolean);
                     const nameStr = rep.GRADYEAR
                       ? `${rep.FIRST} ${rep.LAST} '${String(rep.GRADYEAR).slice(-2)}`
                       : `${rep.FIRST} ${rep.LAST}`;

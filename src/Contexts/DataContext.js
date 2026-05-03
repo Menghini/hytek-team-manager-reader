@@ -911,16 +911,22 @@ function DataContextProvider({ children }) {
           splitSbMaps[rowYear][key] = r;
       }
     });
-    // Collect unique event names and group athletes
+    // Collect unique event names and group athletes (include split-only athletes)
     const allKeys = new Set([
       ...Object.keys(prMap),
       ...years.flatMap((y) => Object.keys(sbMaps[y])),
+      ...Object.keys(splitPrMap),
+      ...years.flatMap((y) => Object.keys(splitSbMaps[y])),
     ]);
     const eventAthleteMap = {}; // eventKey -> { athleteId -> { pr, sbs: {year: row} } }
     const eventNameMap = {}; // eventKey -> display name
     allKeys.forEach((key) => {
       const pr = prMap[key];
-      const rep = pr || years.map((y) => sbMaps[y][key]).find(Boolean);
+      const rep =
+        pr ||
+        years.map((y) => sbMaps[y][key]).find(Boolean) ||
+        splitPrMap[key] ||
+        years.map((y) => splitSbMaps[y][key]).find(Boolean);
       if (!rep) return;
       const eventKey = `${rep.EVENT}|${rep.DISTANCE}`;
       if (!eventAthleteMap[eventKey]) eventAthleteMap[eventKey] = {};
@@ -957,10 +963,14 @@ function DataContextProvider({ children }) {
         const aSort =
           a.pr?.SORTID ??
           Object.values(a.sbs).find(Boolean)?.SORTID ??
+          a.splitPr?.SORTID ??
+          Object.values(a.splitSbs).find(Boolean)?.SORTID ??
           Infinity;
         const bSort =
           b.pr?.SORTID ??
           Object.values(b.sbs).find(Boolean)?.SORTID ??
+          b.splitPr?.SORTID ??
+          Object.values(b.splitSbs).find(Boolean)?.SORTID ??
           Infinity;
         return aSort - bSort;
       });
