@@ -1,6 +1,7 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Box,
+  Button,
   FormControl,
   FormControlLabel,
   InputLabel,
@@ -38,6 +39,10 @@ function PRsSBsTab() {
   const [sbOnly, setSbOnly] = useState(true);
   const [multiYear, setMultiYear] = useState(true);
   const [showSplits, setShowSplits] = useState(true);
+  const [jumpEvent, setJumpEvent] = useState("");
+
+  const scrollContainerRef = useRef(null);
+  const sectionRefs = useRef({});
 
   const sbYears = multiYear
     ? [selectedYear, selectedYear - 1, selectedYear - 2, selectedYear - 3]
@@ -111,6 +116,7 @@ function PRsSBsTab() {
 
   return (
     <Paper
+      ref={scrollContainerRef}
       sx={{
         height: { xs: "calc(100dvh - 120px)", sm: "70vh" },
         width: "100%",
@@ -119,7 +125,15 @@ function PRsSBsTab() {
         boxSizing: "border-box",
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 2,
+          mb: 3,
+          flexWrap: "wrap",
+        }}
+      >
         <Typography variant="h5">PRs / Season Bests</Typography>
         <FormControlLabel
           control={
@@ -163,6 +177,55 @@ function PRsSBsTab() {
             ))}
           </Select>
         </FormControl>
+        {sortedEventEntries.length > 0 && (
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <InputLabel id="jump-label">Jump to Event</InputLabel>
+            <Select
+              labelId="jump-label"
+              value={jumpEvent}
+              label="Jump to Event"
+              onChange={(e) => {
+                const name = e.target.value;
+                setJumpEvent(name);
+                const el = sectionRefs.current[name];
+                if (el && scrollContainerRef.current) {
+                  setTimeout(() => {
+                    const container = scrollContainerRef.current;
+                    if (!container) return;
+                    const containerRect = container.getBoundingClientRect();
+                    const elRect = el.getBoundingClientRect();
+                    container.scrollTo({
+                      top:
+                        elRect.top -
+                        containerRect.top +
+                        container.scrollTop -
+                        8,
+                      behavior: "smooth",
+                    });
+                  }, 0);
+                }
+              }}
+            >
+              {sortedEventEntries
+                .filter(([, rows]) => {
+                  if (!sbOnly) return rows.length > 0;
+                  return rows.some((e) => {
+                    const rep =
+                      e.pr ||
+                      Object.values(e.sbs || {}).find(Boolean) ||
+                      e.splitPr ||
+                      Object.values(e.splitSbs || {}).find(Boolean);
+                    return activeAthleteIds.has(rep?.ATHLETEID);
+                  });
+                })
+                .map(([eventName]) => (
+                  <MenuItem key={eventName} value={eventName}>
+                    {eventName}
+                  </MenuItem>
+                ))}
+            </Select>
+          </FormControl>
+        )}
       </Box>
 
       {Object.keys(prsSBsByEvent).length === 0 ? (
@@ -199,10 +262,35 @@ function PRsSBsTab() {
           );
 
           return (
-            <div key={eventName} style={{ marginBottom: "24px" }}>
-              <Typography variant="h6" sx={{ mb: 1 }}>
-                {eventName}
-              </Typography>
+            <div
+              key={eventName}
+              ref={(el) => {
+                sectionRefs.current[eventName] = el;
+              }}
+              style={{ marginBottom: "24px" }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  mb: 1,
+                }}
+              >
+                <Typography variant="h6">{eventName}</Typography>
+                <Button
+                  size="small"
+                  variant="text"
+                  onClick={() =>
+                    scrollContainerRef.current?.scrollTo({
+                      top: 0,
+                      behavior: "smooth",
+                    })
+                  }
+                >
+                  ↑ Top
+                </Button>
+              </Box>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr
