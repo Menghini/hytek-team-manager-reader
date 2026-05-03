@@ -294,16 +294,29 @@ function MeetResults() {
                 const bareName = (en) =>
                   en.replace(/^(Mens |Womens )/i, "").trim();
 
-                const schoolRecords = selectedMeetRows.filter(
-                  (r) =>
-                    r.ALLTIMERANK === 1 &&
-                    (r.EVENTTYPE === "Individual" || r.EVENTTYPE === "Relay"),
+                const dedupeRelays = (rows) => {
+                  const seenRelayIds = new Set();
+                  return rows.filter((r) => {
+                    if (r.EVENTTYPE !== "Relay") return true;
+                    if (seenRelayIds.has(r.ATHLETEID)) return false;
+                    seenRelayIds.add(r.ATHLETEID);
+                    return true;
+                  });
+                };
+                const schoolRecords = dedupeRelays(
+                  selectedMeetRows.filter(
+                    (r) =>
+                      r.ALLTIMERANK === 1 &&
+                      (r.EVENTTYPE === "Individual" || r.EVENTTYPE === "Relay"),
+                  ),
                 );
-                const top10s = selectedMeetRows.filter(
-                  (r) =>
-                    r.ALLTIMERANK >= 2 &&
-                    r.ALLTIMERANK <= 10 &&
-                    (r.EVENTTYPE === "Individual" || r.EVENTTYPE === "Relay"),
+                const top10s = dedupeRelays(
+                  selectedMeetRows.filter(
+                    (r) =>
+                      r.ALLTIMERANK >= 2 &&
+                      r.ALLTIMERANK <= 10 &&
+                      (r.EVENTTYPE === "Individual" || r.EVENTTYPE === "Relay"),
+                  ),
                 );
 
                 if (schoolRecords.length === 0 && top10s.length === 0) {

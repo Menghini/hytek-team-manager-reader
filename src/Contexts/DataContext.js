@@ -574,6 +574,8 @@ function DataContextProvider({ children }) {
       ISFIELDEVENT: isFieldEvent,
       SORTID: row.SORT_ID,
       MEETID: row.MEET,
+      RAWEVENT: row.EVENT,
+      RAWDISTANCE: row.DISTANCE,
     };
   };
   const openResultsTable = (newSelection) => {
@@ -708,14 +710,23 @@ function DataContextProvider({ children }) {
       }
       return gender ? `${gender} ${eventName}` : eventName;
     };
+    // For relay ranking we use a gender-neutral event key so that rows whose
+    // gender cannot be resolved (missing relay/athlete lookup) are still counted.
+    const relayRankingKey = (row) => `R|${row.EVENT}|${row.DISTANCE}`;
     const allTimeMap = {};
     const histMap = {};
     resultsTable.getData().forEach((row) => {
       if (row.I_R !== "I" && row.I_R !== "R") return;
       if (!row.SORT_ID || row.SCORE === 0) return;
-      const eventName = getFullEventName(row);
+      const eventName =
+        row.I_R === "R" ? relayRankingKey(row) : getFullEventName(row);
       if (!eventName) return;
-      const key = row.I_R === "I" ? row.ATHLETE : row.RESULT;
+      let key = row.ATHLETE;
+      if (row.I_R === "R") {
+        const relEntry =
+          relayTable && relayTable.find((r) => r.RELAY === row.ATHLETE);
+        key = relEntry?.Team ?? row.ATHLETE;
+      }
       const entry = {
         SORT_ID: row.SORT_ID,
         SCORE: row.SCORE,
@@ -794,10 +805,21 @@ function DataContextProvider({ children }) {
       if (row.EVENTTYPE !== "Individual" && row.EVENTTYPE !== "Relay")
         return row;
       // Only rank if this result is the athlete's/relay's all-time PR
-      const key = row.EVENTTYPE === "Individual" ? row.ATHLETEID : row.RESULT;
-      const personalBest = allTimeMap[row.EVENTNAME]?.[key];
+      let rankKey;
+      let key;
+      if (row.EVENTTYPE === "Relay") {
+        // Use gender-neutral relay ranking key to match allTimeMap
+        rankKey = `R|${row.RAWEVENT}|${row.RAWDISTANCE}`;
+        const relEntry =
+          relayTable && relayTable.find((r) => r.RELAY === row.ATHLETEID);
+        key = relEntry?.Team ?? row.ATHLETEID;
+      } else {
+        rankKey = row.EVENTNAME;
+        key = row.ATHLETEID;
+      }
+      const personalBest = allTimeMap[rankKey]?.[key];
       if (!personalBest || personalBest.SORT_ID < row.SORTID) return row;
-      const rankings = sortedAllTime[row.EVENTNAME] || [];
+      const rankings = sortedAllTime[rankKey] || [];
       const rank = rankings.filter((r) => r.SORT_ID < row.SORTID).length + 1;
       if (rank > 10) return row;
       const prevRecord =
