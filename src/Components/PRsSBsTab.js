@@ -13,7 +13,12 @@ import {
 import { DataContext } from "../Contexts/DataContext";
 
 function PRsSBsTab() {
-  const { meetTable, gatherPRsSBs, prsSBsByEvent } = useContext(DataContext);
+  const { meetTable, gatherPRsSBs, prsSBsByEvent, athletesTable } =
+    useContext(DataContext);
+
+  const activeAthleteIds = new Set(
+    (athletesTable || []).filter((a) => !a.Inactive).map((a) => a.Athlete),
+  );
 
   const availableYears = [
     ...new Set(
@@ -73,7 +78,12 @@ function PRsSBsTab() {
         <Typography>No results found for {selectedYear}.</Typography>
       ) : (
         Object.entries(prsSBsByEvent).map(([eventName, rows]) => {
-          const filteredRows = sbOnly ? rows.filter((e) => e.sb) : rows;
+          const filteredRows = sbOnly
+            ? rows.filter((e) => {
+                const rep = e.pr || e.sb;
+                return activeAthleteIds.has(rep?.ATHLETEID);
+              })
+            : rows;
           if (filteredRows.length === 0) return null;
           return (
             <div key={eventName} style={{ marginBottom: "24px" }}>

@@ -1081,6 +1081,7 @@ function DataContextProvider({ children }) {
     top10ResultsByEvent: top10ResultsByEvent,
     gatherPRsSBs: gatherPRsSBs,
     prsSBsByEvent: prsSBsByEvent,
+    athletesTable: athletesTable,
     //Whatever fields
   };
   const [state, setState] = useState(IDataContext);
