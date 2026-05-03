@@ -15,6 +15,7 @@ function DataContextProvider({ children }) {
   const [fileName, setFileName] = useState("");
   const [selectedMeetRows, setSelectedMeetRows] = useState([]);
   const [top10ResultsByEvent, setTop10ResultsByEvent] = useState([]);
+  const [prsSBsByEvent, setPrsSBsByEvent] = useState({});
   const [open, setOpen] = useState(false);
   const [meetTable, setMeetTable] = useState([]);
   const [resultsTable, setResultsTable] = useState([]);
@@ -861,6 +862,67 @@ function DataContextProvider({ children }) {
     // Sort rows by SORTID and select the top 10 results
     return rows.sort((a, b) => a.SORTID - b.SORTID).slice(0, 10);
   };
+  const gatherPRsSBs = (year) => {
+    if (!resultsTable || !resultsTable.getData) return;
+    const rawRows = resultsTable.getData();
+    // Build a meet year lookup map
+    const meetYearMap = {};
+    (meetTable || []).forEach((m) => {
+      meetYearMap[m.MEET] = m.START ? new Date(m.START).getFullYear() : null;
+    });
+    // Only individual events
+    const indivRaws = rawRows.filter(
+      (r) => r.I_R === "I" && r.SORT_ID && r.SCORE !== 0,
+    );
+    // For each athlete+event combo, compute all-time PR and season best
+    // Key: athleteId|EVENT|DISTANCE
+    const prMap = {}; // best SORT_ID ever
+    const sbMap = {}; // best SORT_ID in selected year
+    indivRaws.forEach((r) => {
+      const key = `${r.ATHLETE}|${r.EVENT}|${r.DISTANCE}`;
+      const rowYear = meetYearMap[r.MEET];
+      if (!prMap[key] || r.SORT_ID < prMap[key].SORT_ID) prMap[key] = r;
+      if (rowYear === year) {
+        if (!sbMap[key] || r.SORT_ID < sbMap[key].SORT_ID) sbMap[key] = r;
+      }
+    });
+    // Collect unique event names and group athletes
+    // eventKey: EVENT|DISTANCE  -> array of { athlete row PR, SB row or null }
+    const eventAthleteMap = {}; // eventKey -> { athleteId -> { pr, sb } }
+    const eventNameMap = {}; // eventKey -> display name
+    [...new Set([...Object.keys(prMap), ...Object.keys(sbMap)])].forEach(
+      (key) => {
+        const pr = prMap[key];
+        const sb = sbMap[key];
+        const rep = pr || sb;
+        const eventKey = `${rep.EVENT}|${rep.DISTANCE}`;
+        if (!eventAthleteMap[eventKey]) eventAthleteMap[eventKey] = {};
+        if (!eventNameMap[eventKey]) {
+          const mapped = mapRowToResult(rep, 0, athletesTable);
+          eventNameMap[eventKey] = mapped.EVENTNAME;
+        }
+        const athId = rep.ATHLETE;
+        eventAthleteMap[eventKey][athId] = {
+          pr: pr ? mapRowToResult(pr, 0, athletesTable) : null,
+          sb: sb ? mapRowToResult(sb, 0, athletesTable) : null,
+        };
+      },
+    );
+    // Build final structure: sorted by event name, athletes sorted by PR SORT_ID
+    const result = {};
+    Object.entries(eventAthleteMap).forEach(([eventKey, athletes]) => {
+      const eventName = eventNameMap[eventKey];
+      if (!eventName) return;
+      const rows = Object.values(athletes).sort((a, b) => {
+        const aSort = a.pr?.SORTID ?? a.sb?.SORTID ?? Infinity;
+        const bSort = b.pr?.SORTID ?? b.sb?.SORTID ?? Infinity;
+        return aSort - bSort;
+      });
+      result[eventName] = rows;
+    });
+    setPrsSBsByEvent(result);
+  };
+
   const gatherTop10Results = async () => {
     //TODO: Keep more than 10, if there is a tie.
     if (top10ResultsByEvent.length !== 0) {
@@ -1017,6 +1079,8 @@ function DataContextProvider({ children }) {
     returnPRs: returnPRs,
     gatherTop10Results: gatherTop10Results,
     top10ResultsByEvent: top10ResultsByEvent,
+    gatherPRsSBs: gatherPRsSBs,
+    prsSBsByEvent: prsSBsByEvent,
     //Whatever fields
   };
   const [state, setState] = useState(IDataContext);
