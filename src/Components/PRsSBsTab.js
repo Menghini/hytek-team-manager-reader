@@ -42,6 +42,34 @@ function PRsSBsTab() {
 
   const bareName = (en) => en.replace(/^(Mens |Womens )/i, "").trim();
 
+  const TRACK_INDIVIDUAL_EVENTS = [1, 2, 3, 5];
+  const RELAY_EVENTS = [19];
+  const FIELD_EVENT_ORDER = [9, 10, 11, 12, 13, 14, 16, 15, 17, 31];
+
+  const getEventSortKey = (rows) => {
+    const rep = rows[0]?.pr || rows[0]?.sb;
+    if (!rep) return [3, 0, 0, 0];
+    const ev = rep.RAWEVENT;
+    const dist = rep.RAWDISTANCE || 0;
+    const gender = rep.GENDER === "Mens" ? 0 : 1;
+    if (TRACK_INDIVIDUAL_EVENTS.includes(ev)) return [0, dist, 0, gender];
+    if (RELAY_EVENTS.includes(ev)) return [1, dist, 0, gender];
+    const fieldIdx = FIELD_EVENT_ORDER.indexOf(ev);
+    if (fieldIdx !== -1) return [2, fieldIdx, 0, gender];
+    return [3, ev, 0, gender];
+  };
+
+  const sortedEventEntries = Object.entries(prsSBsByEvent).sort(
+    ([, aRows], [, bRows]) => {
+      const aKey = getEventSortKey(aRows);
+      const bKey = getEventSortKey(bRows);
+      for (let i = 0; i < aKey.length; i++) {
+        if (aKey[i] !== bKey[i]) return aKey[i] - bKey[i];
+      }
+      return 0;
+    },
+  );
+
   const formatMark = (entry) => {
     if (!entry) return "—";
     if (entry.ISFIELDEVENT && entry.CONVERT) {
@@ -85,7 +113,7 @@ function PRsSBsTab() {
       {Object.keys(prsSBsByEvent).length === 0 ? (
         <Typography>No results found for {selectedYear}.</Typography>
       ) : (
-        Object.entries(prsSBsByEvent).map(([eventName, rows]) => {
+        sortedEventEntries.map(([eventName, rows]) => {
           const filteredRows = sbOnly
             ? rows.filter((e) => {
                 const rep = e.pr || e.sb;
