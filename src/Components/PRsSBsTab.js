@@ -8,6 +8,7 @@ import {
   Paper,
   Select,
   Switch,
+  Tooltip,
   Typography,
 } from "@mui/material/";
 import { DataContext } from "../Contexts/DataContext";
@@ -80,12 +81,32 @@ function PRsSBsTab() {
     },
   );
 
+  const meetLookup = {};
+  (meetTable || []).forEach((m) => {
+    meetLookup[m.MEET] = m;
+  });
+
   const formatMark = (entry) => {
     if (!entry) return "—";
     if (entry.ISFIELDEVENT && entry.CONVERT) {
       return `${entry.SCORE} (${entry.CONVERT})`;
     }
     return entry.SCORE || "—";
+  };
+
+  const getMeetTooltip = (entry) => {
+    if (!entry || !entry.MEETID) return "";
+    const meet = meetLookup[entry.MEETID];
+    if (!meet) return "";
+    const name = meet.MNAME || "";
+    const date = meet.START
+      ? new Date(meet.START).toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })
+      : "";
+    return [name, date].filter(Boolean).join(" — ");
   };
 
   return (
@@ -200,21 +221,47 @@ function PRsSBsTab() {
                         <td style={{ padding: "4px 8px" }}>{i + 1}</td>
                         <td style={{ padding: "4px 8px" }}>{nameStr}</td>
                         <td style={{ padding: "4px 8px" }}>
-                          {formatMark(entry.pr)}
+                          <Tooltip
+                            title={getMeetTooltip(entry.pr)}
+                            placement="top"
+                            arrow
+                          >
+                            <span>{formatMark(entry.pr)}</span>
+                          </Tooltip>
                           {showSplits && entry.splitPr && (
                             <div style={{ fontSize: "0.85em", opacity: 0.65 }}>
-                              (S: {formatMark(entry.splitPr)})
+                              <Tooltip
+                                title={getMeetTooltip(entry.splitPr)}
+                                placement="top"
+                                arrow
+                              >
+                                <span>(S: {formatMark(entry.splitPr)})</span>
+                              </Tooltip>
                             </div>
                           )}
                         </td>
                         {sbYears.map((y) => (
                           <td key={y} style={{ padding: "4px 8px" }}>
-                            {formatMark(entry.sbs?.[y])}
+                            <Tooltip
+                              title={getMeetTooltip(entry.sbs?.[y])}
+                              placement="top"
+                              arrow
+                            >
+                              <span>{formatMark(entry.sbs?.[y])}</span>
+                            </Tooltip>
                             {showSplits && entry.splitSbs?.[y] && (
                               <div
                                 style={{ fontSize: "0.85em", opacity: 0.65 }}
                               >
-                                (S: {formatMark(entry.splitSbs[y])})
+                                <Tooltip
+                                  title={getMeetTooltip(entry.splitSbs[y])}
+                                  placement="top"
+                                  arrow
+                                >
+                                  <span>
+                                    (S: {formatMark(entry.splitSbs[y])})
+                                  </span>
+                                </Tooltip>
                               </div>
                             )}
                           </td>
