@@ -35,6 +35,11 @@ function PRsSBsTab() {
 
   const [selectedYear, setSelectedYear] = useState(defaultYear);
   const [sbOnly, setSbOnly] = useState(true);
+  const [multiYear, setMultiYear] = useState(true);
+
+  const sbYears = multiYear
+    ? [selectedYear, selectedYear - 1, selectedYear - 2, selectedYear - 3]
+    : [];
 
   useEffect(() => {
     if (selectedYear) gatherPRsSBs(selectedYear);
@@ -93,6 +98,15 @@ function PRsSBsTab() {
           }
           label="Current Athletes"
         />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={multiYear}
+              onChange={(e) => setMultiYear(e.target.checked)}
+            />
+          }
+          label="Show SBs"
+        />
         <FormControl size="small" sx={{ minWidth: 120 }}>
           <InputLabel id="year-label">Year</InputLabel>
           <Select
@@ -116,7 +130,7 @@ function PRsSBsTab() {
         sortedEventEntries.map(([eventName, rows]) => {
           const filteredRows = sbOnly
             ? rows.filter((e) => {
-                const rep = e.pr || e.sb;
+                const rep = e.pr || Object.values(e.sbs || {}).find(Boolean);
                 return activeAthleteIds.has(rep?.ATHLETEID);
               })
             : rows;
@@ -137,7 +151,11 @@ function PRsSBsTab() {
                     <th style={{ padding: "4px 8px" }}>Rank</th>
                     <th style={{ padding: "4px 8px" }}>Athlete</th>
                     <th style={{ padding: "4px 8px" }}>PR (All-Time)</th>
-                    <th style={{ padding: "4px 8px" }}>SB ({selectedYear})</th>
+                    {sbYears.map((y) => (
+                      <th key={y} style={{ padding: "4px 8px" }}>
+                        SB ({y})
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
@@ -162,9 +180,11 @@ function PRsSBsTab() {
                         <td style={{ padding: "4px 8px" }}>
                           {formatMark(entry.pr)}
                         </td>
-                        <td style={{ padding: "4px 8px" }}>
-                          {formatMark(entry.sb)}
-                        </td>
+                        {sbYears.map((y) => (
+                          <td key={y} style={{ padding: "4px 8px" }}>
+                            {formatMark(entry.sbs?.[y])}
+                          </td>
+                        ))}
                       </tr>
                     );
                   })}
