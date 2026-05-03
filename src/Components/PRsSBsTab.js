@@ -180,6 +180,24 @@ function PRsSBsTab() {
               })
             : rows;
           if (filteredRows.length === 0) return null;
+
+          const getBestSortId = (entry) => {
+            const indiv =
+              entry.pr?.SORTID ??
+              Object.values(entry.sbs || {}).find(Boolean)?.SORTID ??
+              Infinity;
+            if (!showSplits) return indiv;
+            const split =
+              entry.splitPr?.SORTID ??
+              Object.values(entry.splitSbs || {}).find(Boolean)?.SORTID ??
+              Infinity;
+            return Math.min(indiv, split);
+          };
+
+          const sortedRows = [...filteredRows].sort(
+            (a, b) => getBestSortId(a) - getBestSortId(b),
+          );
+
           return (
             <div key={eventName} style={{ marginBottom: "24px" }}>
               <Typography variant="h6" sx={{ mb: 1 }}>
@@ -204,7 +222,7 @@ function PRsSBsTab() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredRows.map((entry, i) => {
+                  {sortedRows.map((entry, i) => {
                     const rep =
                       entry.pr ||
                       Object.values(entry.sbs || {}).find(Boolean) ||
