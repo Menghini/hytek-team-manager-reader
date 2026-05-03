@@ -42,6 +42,14 @@ function PRsSBsTab() {
 
   const bareName = (en) => en.replace(/^(Mens |Womens )/i, "").trim();
 
+  const formatMark = (entry) => {
+    if (!entry) return "—";
+    if (entry.ISFIELDEVENT && entry.CONVERT) {
+      return `${entry.SCORE} (${entry.CONVERT})`;
+    }
+    return entry.SCORE || "—";
+  };
+
   return (
     <Paper
       sx={{ height: "70vh", width: "100%", overflow: "auto", padding: "25px" }}
@@ -124,10 +132,10 @@ function PRsSBsTab() {
                         <td style={{ padding: "4px 8px" }}>{i + 1}</td>
                         <td style={{ padding: "4px 8px" }}>{nameStr}</td>
                         <td style={{ padding: "4px 8px" }}>
-                          {entry.pr ? entry.pr.SCORE : "—"}
+                          {formatMark(entry.pr)}
                         </td>
                         <td style={{ padding: "4px 8px" }}>
-                          {entry.sb ? entry.sb.SCORE : "—"}
+                          {formatMark(entry.sb)}
                         </td>
                       </tr>
                     );
