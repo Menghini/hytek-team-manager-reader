@@ -16,6 +16,7 @@ function DataContextProvider({ children }) {
   const [selectedMeetRows, setSelectedMeetRows] = useState([]);
   const [top10ResultsByEvent, setTop10ResultsByEvent] = useState([]);
   const [prsSBsByEvent, setPrsSBsByEvent] = useState({});
+  const [relayResultsByEvent, setRelayResultsByEvent] = useState({});
   const [open, setOpen] = useState(false);
   const [meetTable, setMeetTable] = useState([]);
   const [resultsTable, setResultsTable] = useState([]);
@@ -497,7 +498,12 @@ function DataContextProvider({ children }) {
     let relayGenderStr = "";
     if (row.I_R === "R") {
       const relayEntry =
-        relayTable && relayTable.find((r) => r.RELAY === row.ATHLETE);
+        relayTable &&
+        relayTable.find(
+          (re) =>
+            re.RELAY === row.ATHLETE ||
+            Number(re.RELAY) === Number(row.ATHLETE),
+        );
       if (!relayEntry) {
         console.log(
           "[Relay debug] No match found. row.ATHLETE =",
@@ -999,6 +1005,105 @@ function DataContextProvider({ children }) {
       result[eventName] = rows;
     });
     setPrsSBsByEvent(result);
+
+    // Process relay (I_R === "R") rows
+    const relayRaws = rawRows.filter(
+      (r) => r.I_R === "R" && r.SORT_ID && r.SCORE !== 0,
+    );
+    const relayEventMap = {};
+    relayRaws.forEach((r) => {
+      const mapped = mapRowToResult(r, 0, athletesTable, false, relayTable);
+      if (!mapped.EVENTNAME || mapped.EVENTNAME.includes("?UNKOWN?")) return;
+
+      let eventName = mapped.EVENTNAME.trim();
+      let relayAthletes = mapped.RELAYATHLETES || [];
+
+      // When the RELAY table lookup failed, derive athletes + gender from split rows
+      // (I_R="N" rows with the same EVENT+MEET as this relay result)
+      if (relayAthletes.length === 0 || !eventName.startsWith("Mens") && !eventName.startsWith("Womens")) {
+        const splitRows = rawRows.filter(
+          (s) => s.I_R === "N" && s.EVENT === r.EVENT && s.MEET === r.MEET,
+        );
+
+        if (relayAthletes.length === 0 && splitRows.length > 0) {
+          relayAthletes = splitRows
+            .map((s) => {
+              const ath =
+                athletesTable && athletesTable.find((a) => a.Athlete === s.ATHLETE);
+              if (!ath) return null;
+              return {
+                FIRST: ath.Pref || ath.First,
+                LAST: ath.Last,
+                GRADYEAR: ath.Comp_No,
+              };
+            })
+            .filter(Boolean);
+        }
+
+        if (!eventName.startsWith("Mens") && !eventName.startsWith("Womens")) {
+          const firstSplitAth =
+            splitRows.length > 0
+              ? athletesTable &&
+                athletesTable.find((a) => a.Athlete === splitRows[0].ATHLETE)
+              : null;
+          const genderSrc =
+            firstSplitAth ||
+            (relayAthletes.length > 0
+              ? athletesTable &&
+                athletesTable.find(
+                  (a) =>
+                    (a.Pref || a.First) === relayAthletes[0].FIRST &&
+                    a.Last === relayAthletes[0].LAST,
+                )
+              : null);
+          if (genderSrc) {
+            const genderStr =
+              genderSrc.Sex === "M"
+                ? "Mens"
+                : genderSrc.Sex === "F"
+                  ? "Womens"
+                  : "";
+            if (genderStr) eventName = `${genderStr} ${eventName}`;
+          }
+        }
+      }
+
+      const rowYear = meetYearMap[r.MEET];
+      if (!relayEventMap[eventName]) relayEventMap[eventName] = [];
+      relayEventMap[eventName].push({
+        SCORE: mapped.SCORE,
+        CONVERT: mapped.CONVERT,
+        ISFIELDEVENT: mapped.ISFIELDEVENT,
+        SORTID: mapped.SORTID,
+        MEETID: mapped.MEETID,
+        RELAYATHLETES: relayAthletes,
+        EVENTNAME: eventName,
+        RAWEVENT: mapped.RAWEVENT,
+        RAWDISTANCE: mapped.RAWDISTANCE,
+        GENDER: mapped.GENDER,
+        YEAR: rowYear,
+      });
+    });
+    // Merge any unprefixed keys (e.g. "4x200M Relay") into the gender-prefixed
+    // version ("Womens 4x200M Relay" / "Mens 4x200M Relay") when both exist.
+    Object.keys(relayEventMap).forEach((key) => {
+      if (!key.startsWith("Mens ") && !key.startsWith("Womens ")) {
+        const prefixedKey =
+          relayEventMap[`Womens ${key}`]
+            ? `Womens ${key}`
+            : relayEventMap[`Mens ${key}`]
+              ? `Mens ${key}`
+              : null;
+        if (prefixedKey) {
+          relayEventMap[prefixedKey].push(...relayEventMap[key]);
+          delete relayEventMap[key];
+        }
+      }
+    });
+    Object.values(relayEventMap).forEach((arr) =>
+      arr.sort((a, b) => (a.SORTID ?? Infinity) - (b.SORTID ?? Infinity)),
+    );
+    setRelayResultsByEvent(relayEventMap);
   };
 
   const gatherTop10Results = async () => {
@@ -1159,6 +1264,7 @@ function DataContextProvider({ children }) {
     top10ResultsByEvent: top10ResultsByEvent,
     gatherPRsSBs: gatherPRsSBs,
     prsSBsByEvent: prsSBsByEvent,
+    relayResultsByEvent: relayResultsByEvent,
     athletesTable: athletesTable,
     //Whatever fields
   };

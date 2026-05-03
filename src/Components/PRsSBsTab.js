@@ -15,7 +15,7 @@ import {
 import { DataContext } from "../Contexts/DataContext";
 
 function PRsSBsTab() {
-  const { meetTable, gatherPRsSBs, prsSBsByEvent, athletesTable } =
+  const { meetTable, gatherPRsSBs, prsSBsByEvent, relayResultsByEvent, athletesTable } =
     useContext(DataContext);
 
   const activeAthleteIds = new Set(
@@ -75,6 +75,16 @@ function PRsSBsTab() {
     return [3, ev, 0, gender];
   };
 
+  const getRelaySortKey = (rows) => {
+    const rep = rows[0];
+    if (!rep) return [3, 0, 0, 0];
+    const ev = rep.RAWEVENT;
+    const dist = rep.RAWDISTANCE || 0;
+    const gender = rep.GENDER === "Mens" ? 0 : 1;
+    if (RELAY_EVENTS.includes(ev)) return [1, dist, 0, gender];
+    return [3, ev, 0, gender];
+  };
+
   const sortedEventEntries = Object.entries(prsSBsByEvent).sort(
     ([, aRows], [, bRows]) => {
       const aKey = getEventSortKey(aRows);
@@ -85,6 +95,40 @@ function PRsSBsTab() {
       return 0;
     },
   );
+
+  const sortedRelayEntries = Object.entries(relayResultsByEvent || {}).sort(
+    ([, aRows], [, bRows]) => {
+      const aKey = getRelaySortKey(aRows);
+      const bKey = getRelaySortKey(bRows);
+      for (let i = 0; i < aKey.length; i++) {
+        if (aKey[i] !== bKey[i]) return aKey[i] - bKey[i];
+      }
+      return 0;
+    },
+  );
+
+  // Merged list: individual events first (in their order), relay events interleaved by sort key
+  const allSortedEntries = [
+    ...sortedEventEntries.map(([name, rows]) => ({ type: "individual", eventName: name, rows })),
+    ...sortedRelayEntries.map(([name, rows]) => ({ type: "relay", eventName: name, rows })),
+  ].sort((a, b) => {
+    const aKey = a.type === "relay" ? getRelaySortKey(a.rows) : getEventSortKey(a.rows);
+    const bKey = b.type === "relay" ? getRelaySortKey(b.rows) : getEventSortKey(b.rows);
+    for (let i = 0; i < aKey.length; i++) {
+      if (aKey[i] !== bKey[i]) return aKey[i] - bKey[i];
+    }
+    return 0;
+  });
+
+  const formatRelayAthletes = (athletes) => {
+    if (!athletes || athletes.length === 0) return "Unknown";
+    const names = athletes.map((a) => {
+      const yr = a.GRADYEAR ? ` '${String(a.GRADYEAR).slice(-2)}` : "";
+      return `${a.FIRST} ${a.LAST}${yr}`;
+    });
+    if (names.length === 1) return names[0];
+    return names.slice(0, -1).join(", ") + ", and " + names[names.length - 1];
+  };
 
   const meetLookup = {};
   (meetTable || []).forEach((m) => {
@@ -177,7 +221,7 @@ function PRsSBsTab() {
             ))}
           </Select>
         </FormControl>
-        {sortedEventEntries.length > 0 && (
+        {allSortedEntries.length > 0 && (
           <FormControl size="small" sx={{ minWidth: 160 }}>
             <InputLabel id="jump-label">Jump to Event</InputLabel>
             <Select
@@ -206,8 +250,14 @@ function PRsSBsTab() {
                 }
               }}
             >
-              {sortedEventEntries
-                .filter(([, rows]) => {
+              {allSortedEntries
+                .filter(({ type, rows }) => {
+                  if (type === "relay") {
+                    const filtered = sbOnly
+                      ? rows.filter((r) => r.YEAR === selectedYear)
+                      : rows;
+                    return filtered.length > 0;
+                  }
                   if (!sbOnly) return rows.length > 0;
                   return rows.some((e) => {
                     const rep =
@@ -218,7 +268,7 @@ function PRsSBsTab() {
                     return activeAthleteIds.has(rep?.ATHLETEID);
                   });
                 })
-                .map(([eventName]) => (
+                .map(({ eventName }) => (
                   <MenuItem key={eventName} value={eventName}>
                     {eventName}
                   </MenuItem>
@@ -231,7 +281,61 @@ function PRsSBsTab() {
       {Object.keys(prsSBsByEvent).length === 0 ? (
         <Typography>No results found for {selectedYear}.</Typography>
       ) : (
-        sortedEventEntries.map(([eventName, rows]) => {
+        allSortedEntries.map(({ type, eventName, rows }) => {
+          if (type === "relay") {
+            const filteredRelayRows = sbOnly
+              ? rows.filter((r) => r.YEAR === selectedYear)
+              : rows;
+            if (filteredRelayRows.length === 0) return null;
+            return (
+              <div
+                key={eventName}
+                ref={(el) => { sectionRefs.current[eventName] = el; }}
+                style={{ marginBottom: "24px" }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
+                  <Typography variant="h6">{eventName}</Typography>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" })}
+                  >
+                    ↑ Top
+                  </Button>
+                </Box>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ textAlign: "left", borderBottom: "2px solid rgba(255,255,255,0.25)" }}>
+                      <th style={{ padding: "4px 8px" }}>Rank</th>
+                      <th style={{ padding: "4px 8px" }}>Athletes</th>
+                      <th style={{ padding: "4px 8px" }}>Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredRelayRows.map((entry, i) => (
+                      <tr
+                        key={i}
+                        style={{
+                          borderBottom: "1px solid rgba(255,255,255,0.08)",
+                          backgroundColor: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.06)",
+                        }}
+                      >
+                        <td style={{ padding: "4px 8px" }}>{i + 1}</td>
+                        <td style={{ padding: "4px 8px" }}>{formatRelayAthletes(entry.RELAYATHLETES)}</td>
+                        <td style={{ padding: "4px 8px" }}>
+                          <Tooltip title={getMeetTooltip(entry)} placement="top" arrow>
+                            <span>{formatMark(entry)}</span>
+                          </Tooltip>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          }
+
+          // Individual event
           const filteredRows = sbOnly
             ? rows.filter((e) => {
                 const rep =
@@ -269,14 +373,7 @@ function PRsSBsTab() {
               }}
               style={{ marginBottom: "24px" }}
             >
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  mb: 1,
-                }}
-              >
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
                 <Typography variant="h6">{eventName}</Typography>
                 <Button
                   size="small"
