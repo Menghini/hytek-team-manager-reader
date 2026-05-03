@@ -90,6 +90,7 @@ function MeetResults() {
             <Tab label="Meet Results" value="1" />
             <Tab label="PRs" value="2" />
             <Tab label="SBs" value="3" />
+            <Tab label="Top 10s" value="4" />
           </TabList>
         </Box>
         <TabPanel value="1">
@@ -247,6 +248,138 @@ function MeetResults() {
                   );
                 })()}
               </ul>
+            </DialogContent>
+          </Paper>
+        </TabPanel>
+        <TabPanel value="4">
+          {/*Top 10s tab - school records and top 10s set at this meet*/}
+          <Paper sx={{ height: 564, width: "100%", overflow: "auto" }}>
+            <DialogContent>
+              {(() => {
+                const ordinal = (n) => {
+                  if (n >= 11 && n <= 13) return `${n}th`;
+                  switch (n % 10) {
+                    case 1:
+                      return `${n}st`;
+                    case 2:
+                      return `${n}nd`;
+                    case 3:
+                      return `${n}rd`;
+                    default:
+                      return `${n}th`;
+                  }
+                };
+                const getEventVerb = (eventName) => {
+                  const bare = eventName
+                    .replace(/^(Mens |Womens )/i, "")
+                    .trim();
+                  if (/Jump|Vault/i.test(bare))
+                    return { action: "jumped", noun: "jump" };
+                  if (/Shot Put|Discus|Hammer|Javelin|Weight/i.test(bare))
+                    return { action: "threw", noun: "throw" };
+                  return { action: "ran", noun: "time" };
+                };
+                const formatRelayNames = (athletes) => {
+                  if (!athletes || athletes.length === 0) return "";
+                  const names = athletes.map(
+                    (a) => `${a.FIRST} ${a.LAST} '${a.GRADYEAR}`,
+                  );
+                  if (names.length === 1) return names[0];
+                  return (
+                    names.slice(0, -1).join(", ") +
+                    ", and " +
+                    names[names.length - 1]
+                  );
+                };
+                const bareName = (en) =>
+                  en.replace(/^(Mens |Womens )/i, "").trim();
+
+                const schoolRecords = selectedMeetRows.filter(
+                  (r) =>
+                    r.ALLTIMERANK === 1 &&
+                    (r.EVENTTYPE === "Individual" || r.EVENTTYPE === "Relay"),
+                );
+                const top10s = selectedMeetRows.filter(
+                  (r) =>
+                    r.ALLTIMERANK >= 2 &&
+                    r.ALLTIMERANK <= 10 &&
+                    (r.EVENTTYPE === "Individual" || r.EVENTTYPE === "Relay"),
+                );
+
+                if (schoolRecords.length === 0 && top10s.length === 0) {
+                  return (
+                    <Typography>
+                      No school records or top 10s were set during this meet
+                    </Typography>
+                  );
+                }
+
+                return (
+                  <>
+                    {schoolRecords.length > 0 && (
+                      <>
+                        <Typography variant="h6" sx={{ mb: 1 }}>
+                          The following school records were broken:
+                        </Typography>
+                        <ul>
+                          {schoolRecords.map((row) => {
+                            const { noun } = getEventVerb(row.EVENTNAME);
+                            const en = bareName(row.EVENTNAME);
+                            let prevText = "";
+                            if (row.PREVRECORD) {
+                              prevText = row.PREVRECORD.isRelay
+                                ? ` This beats the previous record of ${row.PREVRECORD.mark}${row.PREVRECORD.year ? ` set in ${row.PREVRECORD.year}` : ""}.`
+                                : ` This beats the previous record set by ${row.PREVRECORD.athleteName} of ${row.PREVRECORD.mark}${row.PREVRECORD.year ? ` set in ${row.PREVRECORD.year}` : ""}.`;
+                            }
+                            if (row.EVENTTYPE === "Relay") {
+                              return (
+                                <li key={row.id}>
+                                  {`${formatRelayNames(row.RELAYATHLETES)} set the school record in the ${en} with a time of ${row.SCORE}.${prevText}`}
+                                </li>
+                              );
+                            }
+                            return (
+                              <li key={row.id}>
+                                {`${row.FIRST} ${row.LAST} '${row.GRADYEAR} set the school record in the ${en} with a ${noun} of ${row.SCORE}.${prevText}`}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </>
+                    )}
+                    {top10s.length > 0 && (
+                      <>
+                        <Typography
+                          variant="h6"
+                          sx={{ mt: schoolRecords.length > 0 ? 2 : 0, mb: 1 }}
+                        >
+                          The following Top 10s were set:
+                        </Typography>
+                        <ul>
+                          {top10s.map((row) => {
+                            const { action, noun } = getEventVerb(
+                              row.EVENTNAME,
+                            );
+                            const en = bareName(row.EVENTNAME);
+                            if (row.EVENTTYPE === "Relay") {
+                              return (
+                                <li key={row.id}>
+                                  {`${formatRelayNames(row.RELAYATHLETES)} ran the ${ordinal(row.ALLTIMERANK)} best time in school history in the ${en} with a time of ${row.SCORE}.`}
+                                </li>
+                              );
+                            }
+                            return (
+                              <li key={row.id}>
+                                {`${row.FIRST} ${row.LAST} '${row.GRADYEAR} ${action} ${row.SCORE} in the ${en} which is the ${ordinal(row.ALLTIMERANK)} best ${noun} in school history.`}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </>
+                    )}
+                  </>
+                );
+              })()}
             </DialogContent>
           </Paper>
         </TabPanel>

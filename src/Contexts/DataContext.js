@@ -573,6 +573,7 @@ function DataContextProvider({ children }) {
       RAWMETRIC: rawMetric,
       ISFIELDEVENT: isFieldEvent,
       SORTID: row.SORT_ID,
+      MEETID: row.MEET,
     };
   };
   const openResultsTable = (newSelection) => {
@@ -641,9 +642,172 @@ function DataContextProvider({ children }) {
         IMPROVESEASONIMPERIAL: improveSeasonImperial,
       };
     });
-    setSelectedMeetRows(selectedMeetRows);
+
+    // --- Build all-time rankings for Top 10s tab ---
+    const athleteById = new Map(athletesTable.map((a) => [a.Athlete, a]));
+    const getFullEventName = (row) => {
+      let eventName = "";
+      switch (row.EVENT) {
+        case 1:
+          eventName = row.DISTANCE + "M Dash";
+          break;
+        case 2:
+          eventName = row.DISTANCE + "M Run";
+          break;
+        case 3:
+          eventName = row.DISTANCE / 10 + " Mile Run";
+          break;
+        case 5:
+          eventName = row.DISTANCE + "M Hurdles";
+          break;
+        case 9:
+          eventName = "High Jump";
+          break;
+        case 10:
+          eventName = "Pole Vault";
+          break;
+        case 11:
+          eventName = "Long Jump";
+          break;
+        case 12:
+          eventName = "Triple Jump";
+          break;
+        case 13:
+          eventName = "Shot Put";
+          break;
+        case 14:
+          eventName = "Discus";
+          break;
+        case 15:
+          eventName = "Hammer";
+          break;
+        case 16:
+          eventName = "Javelin";
+          break;
+        case 17:
+          eventName = "Weight Throw";
+          break;
+        case 19:
+          eventName = "4x" + row.DISTANCE / 4 + "M Relay";
+          break;
+        case 31:
+          eventName = "Super Weight";
+          break;
+        default:
+          return "";
+      }
+      let gender = "";
+      if (row.I_R === "I") {
+        const ath = athleteById.get(row.ATHLETE);
+        gender = ath?.Sex === "M" ? "Mens" : ath?.Sex === "F" ? "Womens" : "";
+      } else if (row.I_R === "R") {
+        const rel =
+          relayTable && relayTable.find((r) => r.RELAY === row.ATHLETE);
+        const ath1 = rel?.["ATH(1)"] ? athleteById.get(rel["ATH(1)"]) : null;
+        gender = ath1?.Sex === "M" ? "Mens" : ath1?.Sex === "F" ? "Womens" : "";
+      }
+      return gender ? `${gender} ${eventName}` : eventName;
+    };
+    const allTimeMap = {};
+    const histMap = {};
+    resultsTable.getData().forEach((row) => {
+      if (row.I_R !== "I" && row.I_R !== "R") return;
+      if (!row.SORT_ID || row.SCORE === 0) return;
+      const eventName = getFullEventName(row);
+      if (!eventName) return;
+      const key = row.I_R === "I" ? row.ATHLETE : row.RESULT;
+      const entry = {
+        SORT_ID: row.SORT_ID,
+        SCORE: row.SCORE,
+        MARK_YD: row.MARK_YD,
+        ATHLETE: row.ATHLETE,
+        RESULT: row.RESULT,
+        MEET: row.MEET,
+        I_R: row.I_R,
+      };
+      if (!allTimeMap[eventName]) allTimeMap[eventName] = {};
+      if (
+        !(key in allTimeMap[eventName]) ||
+        entry.SORT_ID < allTimeMap[eventName][key].SORT_ID
+      )
+        allTimeMap[eventName][key] = entry;
+      if (row.MEET !== selectedMeetId) {
+        if (!histMap[eventName]) histMap[eventName] = {};
+        if (
+          !(key in histMap[eventName]) ||
+          entry.SORT_ID < histMap[eventName][key].SORT_ID
+        )
+          histMap[eventName][key] = entry;
+      }
+    });
+    const sortedAllTime = {};
+    for (const en in allTimeMap)
+      sortedAllTime[en] = Object.values(allTimeMap[en]).sort(
+        (a, b) => a.SORT_ID - b.SORT_ID,
+      );
+    const sortedHist = {};
+    for (const en in histMap)
+      sortedHist[en] = Object.values(histMap[en]).sort(
+        (a, b) => a.SORT_ID - b.SORT_ID,
+      );
+    const getPrevRecord = (eventName, eventType) => {
+      const hist = sortedHist[eventName];
+      if (!hist || hist.length === 0) return null;
+      const prev = hist[0];
+      const { mark } = convertRawScoreToMark(prev.SCORE, prev.MARK_YD);
+      const prevMeetRow = meetTable.find((m) => m.MEET === prev.MEET);
+      const year = prevMeetRow
+        ? new Date(prevMeetRow.START).getFullYear()
+        : null;
+      if (eventType === "Relay") {
+        const rel =
+          relayTable && relayTable.find((r) => r.RELAY === prev.ATHLETE);
+        const athletes = rel
+          ? [rel["ATH(1)"], rel["ATH(2)"], rel["ATH(3)"], rel["ATH(4)"]]
+              .filter(Boolean)
+              .map((id) => {
+                const a = athleteById.get(id);
+                return a
+                  ? {
+                      FIRST: a.Pref || a.First,
+                      LAST: a.Last,
+                      GRADYEAR: a.Comp_No,
+                    }
+                  : null;
+              })
+              .filter(Boolean)
+          : [];
+        return { mark, year, athletes, isRelay: true };
+      } else {
+        const a = athleteById.get(prev.ATHLETE);
+        return a
+          ? {
+              mark,
+              year,
+              athleteName: `${a.Pref || a.First} ${a.Last} '${a.Comp_No}`,
+              isRelay: false,
+            }
+          : { mark, year, athleteName: "Unknown", isRelay: false };
+      }
+    };
+    const annotatedRows = selectedMeetRows.map((row) => {
+      if (row.EVENTTYPE !== "Individual" && row.EVENTTYPE !== "Relay")
+        return row;
+      // Only rank if this result is the athlete's/relay's all-time PR
+      const key = row.EVENTTYPE === "Individual" ? row.ATHLETEID : row.RESULT;
+      const personalBest = allTimeMap[row.EVENTNAME]?.[key];
+      if (!personalBest || personalBest.SORT_ID < row.SORTID) return row;
+      const rankings = sortedAllTime[row.EVENTNAME] || [];
+      const rank = rankings.filter((r) => r.SORT_ID < row.SORTID).length + 1;
+      if (rank > 10) return row;
+      const prevRecord =
+        rank === 1 ? getPrevRecord(row.EVENTNAME, row.EVENTTYPE) : null;
+      return { ...row, ALLTIMERANK: rank, PREVRECORD: prevRecord };
+    });
+
+    setSelectedMeetRows(annotatedRows);
     setOpen(true);
-    return selectedMeetRows;
+    return annotatedRows;
   };
   const groupRowsByEventName = (rows) => {
     return rows.reduce((acc, row) => {
