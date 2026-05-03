@@ -874,13 +874,20 @@ function DataContextProvider({ children }) {
     const indivRaws = rawRows.filter(
       (r) => r.I_R === "I" && r.SORT_ID && r.SCORE !== 0,
     );
+    // Relay split rows
+    const splitRaws = rawRows.filter(
+      (r) => r.I_R === "N" && r.SORT_ID && r.SCORE !== 0,
+    );
     const years = [year, year - 1, year - 2, year - 3];
     // For each athlete+event combo, compute all-time PR and per-year season bests
     // Key: athleteId|EVENT|DISTANCE
     const prMap = {}; // best SORT_ID ever
     const sbMaps = {}; // { year: { key: best row } }
+    const splitPrMap = {}; // best relay split ever
+    const splitSbMaps = {}; // { year: { key: best split row } }
     years.forEach((y) => {
       sbMaps[y] = {};
+      splitSbMaps[y] = {};
     });
     indivRaws.forEach((r) => {
       const key = `${r.ATHLETE}|${r.EVENT}|${r.DISTANCE}`;
@@ -889,6 +896,19 @@ function DataContextProvider({ children }) {
       if (years.includes(rowYear)) {
         if (!sbMaps[rowYear][key] || r.SORT_ID < sbMaps[rowYear][key].SORT_ID)
           sbMaps[rowYear][key] = r;
+      }
+    });
+    splitRaws.forEach((r) => {
+      const key = `${r.ATHLETE}|${r.EVENT}|${r.DISTANCE}`;
+      const rowYear = meetYearMap[r.MEET];
+      if (!splitPrMap[key] || r.SORT_ID < splitPrMap[key].SORT_ID)
+        splitPrMap[key] = r;
+      if (years.includes(rowYear)) {
+        if (
+          !splitSbMaps[rowYear][key] ||
+          r.SORT_ID < splitSbMaps[rowYear][key].SORT_ID
+        )
+          splitSbMaps[rowYear][key] = r;
       }
     });
     // Collect unique event names and group athletes
@@ -910,14 +930,22 @@ function DataContextProvider({ children }) {
       }
       const athId = rep.ATHLETE;
       const sbs = {};
+      const splitSbs = {};
       years.forEach((y) => {
         sbs[y] = sbMaps[y][key]
           ? mapRowToResult(sbMaps[y][key], 0, athletesTable)
+          : null;
+        splitSbs[y] = splitSbMaps[y][key]
+          ? mapRowToResult(splitSbMaps[y][key], 0, athletesTable)
           : null;
       });
       eventAthleteMap[eventKey][athId] = {
         pr: pr ? mapRowToResult(pr, 0, athletesTable) : null,
         sbs,
+        splitPr: splitPrMap[key]
+          ? mapRowToResult(splitPrMap[key], 0, athletesTable)
+          : null,
+        splitSbs,
       };
     });
     // Build final structure: athletes sorted by PR SORT_ID

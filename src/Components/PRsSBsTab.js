@@ -36,6 +36,7 @@ function PRsSBsTab() {
   const [selectedYear, setSelectedYear] = useState(defaultYear);
   const [sbOnly, setSbOnly] = useState(true);
   const [multiYear, setMultiYear] = useState(true);
+  const [showSplits, setShowSplits] = useState(true);
 
   const sbYears = multiYear
     ? [selectedYear, selectedYear - 1, selectedYear - 2, selectedYear - 3]
@@ -52,7 +53,7 @@ function PRsSBsTab() {
   const FIELD_EVENT_ORDER = [9, 10, 11, 12, 13, 14, 16, 15, 17, 31];
 
   const getEventSortKey = (rows) => {
-    const rep = rows[0]?.pr || rows[0]?.sb;
+    const rep = rows[0]?.pr || Object.values(rows[0]?.sbs || {}).find(Boolean);
     if (!rep) return [3, 0, 0, 0];
     const ev = rep.RAWEVENT;
     const dist = rep.RAWDISTANCE || 0;
@@ -107,6 +108,15 @@ function PRsSBsTab() {
           }
           label="Show SBs"
         />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={showSplits}
+              onChange={(e) => setShowSplits(e.target.checked)}
+            />
+          }
+          label="Show Relay Splits"
+        />
         <FormControl size="small" sx={{ minWidth: 120 }}>
           <InputLabel id="year-label">Year</InputLabel>
           <Select
@@ -160,7 +170,8 @@ function PRsSBsTab() {
                 </thead>
                 <tbody>
                   {filteredRows.map((entry, i) => {
-                    const rep = entry.pr || entry.sb;
+                    const rep =
+                      entry.pr || Object.values(entry.sbs || {}).find(Boolean);
                     const nameStr = rep.GRADYEAR
                       ? `${rep.FIRST} ${rep.LAST} '${String(rep.GRADYEAR).slice(-2)}`
                       : `${rep.FIRST} ${rep.LAST}`;
@@ -179,10 +190,22 @@ function PRsSBsTab() {
                         <td style={{ padding: "4px 8px" }}>{nameStr}</td>
                         <td style={{ padding: "4px 8px" }}>
                           {formatMark(entry.pr)}
+                          {showSplits && entry.splitPr && (
+                            <div style={{ fontSize: "0.85em", opacity: 0.65 }}>
+                              (S: {formatMark(entry.splitPr)})
+                            </div>
+                          )}
                         </td>
                         {sbYears.map((y) => (
                           <td key={y} style={{ padding: "4px 8px" }}>
                             {formatMark(entry.sbs?.[y])}
+                            {showSplits && entry.splitSbs?.[y] && (
+                              <div
+                                style={{ fontSize: "0.85em", opacity: 0.65 }}
+                              >
+                                (S: {formatMark(entry.splitSbs[y])})
+                              </div>
+                            )}
                           </td>
                         ))}
                       </tr>
